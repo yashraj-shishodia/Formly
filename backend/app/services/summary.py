@@ -75,18 +75,21 @@ def calculate_form_summary(db: Session, form_id: int) -> FormSummary:
             counter: Counter = Counter()
 
             for a in answers:
-                if a.value_text:
-                    counter[a.value_text] += 1
-                elif a.value_json:
+                handled = False
+                if a.value_json:
                     try:
                         parsed = json.loads(a.value_json)
                         if isinstance(parsed, list):
                             for item in parsed:
                                 counter[str(item)] += 1
-                        elif isinstance(parsed, str):
+                            handled = True
+                        elif isinstance(parsed, str) and not a.value_text:
                             counter[parsed] += 1
+                            handled = True
                     except Exception:
                         pass
+                if not handled and a.value_text:
+                    counter[a.value_text] += 1
 
             option_stats: List[QuestionOptionStat] = []
             for label in option_labels:

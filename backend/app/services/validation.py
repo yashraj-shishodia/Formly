@@ -139,19 +139,20 @@ def validate_answer(
             # If no options defined yet on question, any answer is allowed
             return None
 
-        # Check if single or multiple choices
+        # Check if single or multiple choices: if value_json parses to list, use it first, ignore value_text
         chosen_labels = []
-        if answer.value_text:
-            chosen_labels.append(answer.value_text.strip())
-        elif answer.value_json:
+        if answer.value_json:
             try:
                 parsed = json.loads(answer.value_json)
                 if isinstance(parsed, list):
                     chosen_labels.extend([str(x).strip() for x in parsed])
-                elif isinstance(parsed, str):
+                elif isinstance(parsed, str) and not answer.value_text:
                     chosen_labels.append(parsed.strip())
             except Exception:
                 return "Invalid choice format."
+
+        if not chosen_labels and answer.value_text:
+            chosen_labels.append(answer.value_text.strip())
 
         if not chosen_labels:
             return "Please select an option."

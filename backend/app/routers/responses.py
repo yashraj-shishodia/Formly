@@ -26,7 +26,7 @@ def resolve_answer_value(answer: Answer) -> Any:
     if answer.value_json is not None:
         try:
             parsed = json.loads(answer.value_json)
-            if isinstance(parsed, dict) and "file_id" in parsed:
+            if (isinstance(parsed, dict) and "file_id" in parsed) or isinstance(parsed, list):
                 return parsed
         except Exception:
             pass

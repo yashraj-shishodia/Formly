@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { Copy, Check, ExternalLink, Globe2, EyeOff } from "lucide-react";
 import { toast } from "sonner";
@@ -17,16 +17,10 @@ interface ShareModalProps {
 
 export function ShareModal({ form, isOpen, onClose }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
-  const [origin, setOrigin] = useState("");
+  const [origin] = useState(() => (typeof window !== "undefined" ? window.location.origin : ""));
 
   const publishMutation = usePublishForm(form?.id ?? 0);
   const unpublishMutation = useUnpublishForm(form?.id ?? 0);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setOrigin(window.location.origin);
-    }
-  }, []);
 
   if (!form) return null;
 
@@ -65,7 +59,7 @@ export function ShareModal({ form, isOpen, onClose }: ShareModalProps) {
     >
       <div className="space-y-6 pt-2">
         {/* Publication Status Card */}
-        <div className="p-4 rounded-[12px] bg-[#F5F5F5] border border-[#E6E6E8] flex items-center justify-between">
+        <div className="p-4 rounded-[12px] bg-[var(--surface-card)] border border-[var(--border)] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
               className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
@@ -82,20 +76,20 @@ export function ShareModal({ form, isOpen, onClose }: ShareModalProps) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm text-[#2B2530]">
+                <span className="font-semibold text-sm text-[var(--text-primary)]">
                   {isPublished ? "Published" : "Draft (Unpublished)"}
                 </span>
                 <span
                   className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-[4px] ${
                     isPublished
                       ? "bg-[#E6F4EA] text-[#2F7D69]"
-                      : "bg-[#EAEAEC] text-[#6B6570]"
+                      : "bg-[var(--surface-canvas)] text-[var(--text-secondary)]"
                   }`}
                 >
                   {isPublished ? "Live" : "Draft"}
                 </span>
               </div>
-              <p className="text-xs text-[#6B6570] mt-0.5">
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                 {isPublished
                   ? "Anyone with the link can view and submit responses."
                   : "This form cannot receive public responses."}
@@ -111,7 +105,7 @@ export function ShareModal({ form, isOpen, onClose }: ShareModalProps) {
             disabled={isPending}
             onClick={handleTogglePublish}
             className={`w-11 h-6 rounded-full transition-colors relative focus:outline-hidden disabled:opacity-50 ${
-              isPublished ? "bg-[#2F7D69]" : "bg-[#D4D2D6]"
+              isPublished ? "bg-[#2F7D69]" : "bg-[var(--border-strong)]"
             }`}
           >
             <span
@@ -125,7 +119,7 @@ export function ShareModal({ form, isOpen, onClose }: ShareModalProps) {
         {/* Public Link Section (when published) */}
         {isPublished && publicUrl && (
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-[#6B6570] uppercase tracking-wider block">
+            <label className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider block">
               Shareable Link
             </label>
             <div className="flex items-center gap-2">
@@ -133,7 +127,7 @@ export function ShareModal({ form, isOpen, onClose }: ShareModalProps) {
                 type="text"
                 readOnly
                 value={publicUrl}
-                className="flex-1 px-3.5 py-2.5 bg-white border border-[#E6E6E8] rounded-[8px] text-sm text-[#2B2530] font-mono focus:outline-hidden focus:border-[#2B2530]"
+                className="flex-1 px-3.5 py-2.5 bg-[var(--surface-page)] border border-[var(--border)] rounded-[8px] text-sm text-[var(--text-primary)] font-mono focus:outline-hidden focus:border-[var(--primary)]"
               />
               <Button
                 variant={copied ? "secondary" : "primary"}
@@ -155,8 +149,8 @@ export function ShareModal({ form, isOpen, onClose }: ShareModalProps) {
               </Button>
             </div>
 
-            <div className="pt-2 flex items-center justify-between text-xs text-[#6B6570]">
-              <span>Slug: <code className="font-mono bg-[#F5F5F5] px-1 py-0.5 rounded">{form.slug}</code></span>
+            <div className="pt-2 flex items-center justify-between text-xs text-[var(--text-secondary)]">
+              <span>Slug: <code className="font-mono bg-[var(--surface-card)] px-1 py-0.5 rounded">{form.slug}</code></span>
               <Link
                 href={`/f/${form.slug}`}
                 target="_blank"
@@ -173,7 +167,7 @@ export function ShareModal({ form, isOpen, onClose }: ShareModalProps) {
         {/* Action button if draft */}
         {!isPublished && (
           <div className="text-center py-2 space-y-3">
-            <p className="text-xs text-[#6B6570]">
+            <p className="text-xs text-[var(--text-secondary)]">
               To start collecting responses, publish this form to generate a unique public link.
             </p>
             <Button
@@ -189,7 +183,7 @@ export function ShareModal({ form, isOpen, onClose }: ShareModalProps) {
         )}
 
         {/* Modal Footer */}
-        <div className="flex justify-end pt-2 border-t border-[#E6E6E8]">
+        <div className="flex justify-end pt-2 border-t border-[var(--border)]">
           <Button variant="secondary" size="md" onClick={onClose}>
             Done
           </Button>

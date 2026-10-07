@@ -26,9 +26,9 @@ export default function FormResultsPage({ params }: ResultsPageProps) {
 
   if (isError || !form) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center font-sans">
-        <h2 className="text-xl font-bold text-[#2B2530] mb-2">Form not found</h2>
-        <p className="text-xs text-[#6B6570]">
+      <div className="min-h-screen bg-[var(--surface-page)] flex flex-col items-center justify-center p-6 text-center font-sans">
+        <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Form not found</h2>
+        <p className="text-xs text-[var(--text-secondary)]">
           Could not find form #{formId}. Please return to workspace.
         </p>
       </div>
@@ -36,7 +36,7 @@ export default function FormResultsPage({ params }: ResultsPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#FCFCFD] flex flex-col font-sans">
+    <div className="min-h-screen bg-[var(--surface-page)] flex flex-col font-sans">
       {/* Top Header with Tab Switcher, Breadcrumb & Actions */}
       <ResultsHeader
         form={form}

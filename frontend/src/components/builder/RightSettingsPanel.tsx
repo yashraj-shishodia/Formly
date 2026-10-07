@@ -15,7 +15,7 @@ import {
   Hash,
   Star,
 } from "lucide-react";
-import { Question, QuestionType, QuestionOption } from "@/lib/types";
+import { Question, QuestionType } from "@/lib/types";
 import { toast } from "sonner";
 
 interface RightSettingsPanelProps {
@@ -46,7 +46,7 @@ export function RightSettingsPanel({
 
   if (!question) {
     return (
-      <div className="w-full lg:w-[300px] shrink-0 p-4 bg-[#F5F5F5] rounded-[16px] border border-[#E6E6E8] text-xs text-[#6B6570] text-center">
+      <div className="w-full lg:w-[300px] shrink-0 p-4 bg-[var(--surface-card)] rounded-[16px] border border-[var(--border)] text-xs text-[var(--text-secondary)] text-center">
         Select a question to customize its properties.
       </div>
     );
@@ -66,12 +66,6 @@ export function RightSettingsPanel({
     const updated = { ...settings, [key]: value };
     onUpdateQuestion({ settings_json: JSON.stringify(updated) });
   };
-
-  const currentTypeInfo = QUESTION_TYPE_LABELS[question.type] || {
-    label: question.type,
-    icon: Type,
-  };
-  const CurrentIcon = currentTypeInfo.icon;
 
   // Option handlers for choice / dropdown
   const handleOptionChange = (idx: number, newLabel: string) => {
@@ -108,21 +102,21 @@ export function RightSettingsPanel({
   return (
     <div className="w-full lg:w-[300px] shrink-0 flex flex-col gap-3.5 select-none overflow-y-auto pr-1">
       {/* Card 1: Question Segmented Control per DESIGN_SPEC §3 */}
-      <div className="bg-[#F5F5F5] rounded-[16px] border border-[#E6E6E8] p-3.5 space-y-3">
-        <div className="flex items-center justify-between text-xs font-semibold text-[#2B2530]">
+      <div className="bg-[var(--surface-card)] rounded-[16px] border border-[var(--border)] p-3.5 space-y-3">
+        <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-primary)]">
           <span>Question</span>
-          <HelpCircle className="w-3.5 h-3.5 text-[#A8A3AD]" />
+          <HelpCircle className="w-3.5 h-3.5 text-[var(--text-muted)]" />
         </div>
 
         {/* Segmented Control Text | Video */}
-        <div className="flex p-1 bg-[#EAEAEC] rounded-[10px] text-xs font-medium">
+        <div className="flex p-1 bg-[var(--surface-canvas)] rounded-[10px] text-xs font-medium">
           <button
             type="button"
             onClick={() => setSegmentedTab("text")}
             className={`flex-1 py-1.5 rounded-[8px] transition-all text-center ${
               segmentedTab === "text"
-                ? "bg-white text-[#2B2530] shadow-xs font-semibold"
-                : "text-[#6B6570] hover:text-[#2B2530]"
+                ? "bg-[var(--surface-page)] text-[var(--text-primary)] shadow-xs font-semibold"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
             Text
@@ -130,7 +124,7 @@ export function RightSettingsPanel({
           <button
             type="button"
             onClick={() => toast.info("Video questions are a placeholder (Coming Soon)")}
-            className={`flex-1 py-1.5 rounded-[8px] transition-all text-center flex items-center justify-center gap-1 text-[#A8A3AD]`}
+            className={`flex-1 py-1.5 rounded-[8px] transition-all text-center flex items-center justify-center gap-1 text-[var(--text-muted)]`}
           >
             <span>Video</span>
             <span className="text-[9px] text-[#2F7D69] bg-[#E6F4EA] px-1 py-0.5 rounded-[3px]">
@@ -141,21 +135,21 @@ export function RightSettingsPanel({
       </div>
 
       {/* Card 2: Answer & Type Settings */}
-      <div className="bg-[#F5F5F5] rounded-[16px] border border-[#E6E6E8] p-3.5 space-y-4">
-        <div className="flex items-center justify-between text-xs font-semibold text-[#2B2530]">
+      <div className="bg-[var(--surface-card)] rounded-[16px] border border-[var(--border)] p-3.5 space-y-4">
+        <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-primary)]">
           <span>Answer</span>
         </div>
 
         {/* Change Question Type Dropdown */}
         <div className="relative">
-          <label className="text-[11px] font-bold text-[#6B6570] uppercase tracking-wider block mb-1.5">
+          <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block mb-1.5">
             Question Type
           </label>
           <div className="relative">
             <select
               value={question.type}
               onChange={(e) => onChangeType(e.target.value as QuestionType)}
-              className="w-full appearance-none bg-white border border-[#E6E6E8] rounded-[10px] px-3 py-2 text-xs text-[#2B2530] font-medium focus:outline-hidden focus:border-[#2B2530] cursor-pointer"
+              className="w-full appearance-none bg-[var(--surface-page)] border border-[var(--border)] rounded-[10px] px-3 py-2 text-xs text-[var(--text-primary)] font-medium focus:outline-hidden focus:border-[var(--primary)] cursor-pointer"
             >
               {Object.entries(QUESTION_TYPE_LABELS).map(([t, info]) => (
                 <option key={t} value={t}>
@@ -163,17 +157,17 @@ export function RightSettingsPanel({
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-3.5 h-3.5 text-[#A8A3AD] absolute right-3 top-3 pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-[var(--text-muted)] absolute right-3 top-3 pointer-events-none" />
           </div>
         </div>
 
         {/* Toggle 1: Required */}
-        <div className="flex items-center justify-between py-1 border-t border-[#EAEAEC]">
+        <div className="flex items-center justify-between py-1 border-t border-[var(--border)]">
           <div>
-            <span className="text-xs font-medium text-[#2B2530] block">
+            <span className="text-xs font-medium text-[var(--text-primary)] block">
               Required
             </span>
-            <span className="text-[10px] text-[#6B6570]">
+            <span className="text-[10px] text-[var(--text-secondary)]">
               Respondents cannot skip
             </span>
           </div>
@@ -184,7 +178,7 @@ export function RightSettingsPanel({
             aria-checked={question.required}
             onClick={() => onUpdateQuestion({ required: !question.required })}
             className={`w-9 h-5 rounded-full transition-colors relative focus:outline-hidden ${
-              question.required ? "bg-[#2B2530]" : "bg-[#D4D2D6]"
+              question.required ? "bg-[var(--primary)]" : "bg-[var(--border-strong)]"
             }`}
           >
             <span
@@ -197,13 +191,13 @@ export function RightSettingsPanel({
 
         {/* Type-Specific: Choices Editor for Multiple Choice & Dropdown */}
         {(question.type === "multiple_choice" || question.type === "dropdown") && (
-          <div className="space-y-3 pt-2 border-t border-[#EAEAEC]">
+          <div className="space-y-3 pt-2 border-t border-[var(--border)]">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#2B2530]">Choices</span>
+              <span className="text-xs font-semibold text-[var(--text-primary)]">Choices</span>
               <button
                 type="button"
                 onClick={handleAddOption}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#2B2530] hover:text-[#8E4FC0]"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--text-primary)] hover:text-[#8E4FC0]"
               >
                 <Plus className="w-3 h-3" />
                 <span>Add choice</span>
@@ -217,12 +211,12 @@ export function RightSettingsPanel({
                     type="text"
                     value={opt.label}
                     onChange={(e) => handleOptionChange(idx, e.target.value)}
-                    className="flex-1 bg-white border border-[#E6E6E8] rounded-[6px] px-2.5 py-1.5 text-xs text-[#2B2530] focus:outline-hidden focus:border-[#2B2530]"
+                    className="flex-1 bg-[var(--surface-page)] border border-[var(--border)] rounded-[6px] px-2.5 py-1.5 text-xs text-[var(--text-primary)] focus:outline-hidden focus:border-[var(--primary)]"
                   />
                   <button
                     type="button"
                     onClick={() => handleRemoveOption(idx)}
-                    className="p-1 text-[#A8A3AD] hover:text-[#D9383A] transition-colors"
+                    className="p-1 text-[var(--text-muted)] hover:text-[var(--accent-error)] transition-colors"
                     title="Remove choice"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -234,7 +228,7 @@ export function RightSettingsPanel({
             {/* Multiple Choice: Allow multiple selection */}
             {question.type === "multiple_choice" && (
               <div className="flex items-center justify-between pt-2">
-                <span className="text-xs font-medium text-[#2B2530]">
+                <span className="text-xs font-medium text-[var(--text-primary)]">
                   Allow multiple selection
                 </span>
                 <button
@@ -245,7 +239,7 @@ export function RightSettingsPanel({
                     updateSetting("allow_multiple", !settings.allow_multiple)
                   }
                   className={`w-9 h-5 rounded-full transition-colors relative focus:outline-hidden ${
-                    settings.allow_multiple ? "bg-[#2B2530]" : "bg-[#D4D2D6]"
+                    settings.allow_multiple ? "bg-[var(--primary)]" : "bg-[var(--border-strong)]"
                   }`}
                 >
                   <span
@@ -261,8 +255,8 @@ export function RightSettingsPanel({
 
         {/* Type-Specific: Rating steps */}
         {question.type === "rating" && (
-          <div className="space-y-2 pt-2 border-t border-[#EAEAEC]">
-            <label className="text-xs font-medium text-[#2B2530] block">
+          <div className="space-y-2 pt-2 border-t border-[var(--border)]">
+            <label className="text-xs font-medium text-[var(--text-primary)] block">
               Max Rating Steps
             </label>
             <div className="grid grid-cols-4 gap-1.5">
@@ -273,8 +267,8 @@ export function RightSettingsPanel({
                   onClick={() => updateSetting("max_rating", steps)}
                   className={`py-1.5 rounded-[6px] text-xs font-medium border transition-colors ${
                     (settings.max_rating || 5) === steps
-                      ? "bg-[#2B2530] text-white border-[#2B2530]"
-                      : "bg-white text-[#2B2530] border-[#E6E6E8] hover:bg-[#F5F5F5]"
+                      ? "bg-[var(--primary)] text-white border-[var(--primary)]"
+                      : "bg-[var(--surface-page)] text-[var(--text-primary)] border-[var(--border)] hover:bg-[var(--surface-card-hover)]"
                   }`}
                 >
                   {steps}
@@ -286,13 +280,13 @@ export function RightSettingsPanel({
 
         {/* Type-Specific: Number min / max */}
         {question.type === "number" && (
-          <div className="space-y-2 pt-2 border-t border-[#EAEAEC]">
-            <span className="text-xs font-medium text-[#2B2530] block">
+          <div className="space-y-2 pt-2 border-t border-[var(--border)]">
+            <span className="text-xs font-medium text-[var(--text-primary)] block">
               Number Constraints
             </span>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-[#6B6570] block mb-1">
+                <label className="text-[10px] text-[var(--text-secondary)] block mb-1">
                   Min value
                 </label>
                 <input
@@ -305,11 +299,11 @@ export function RightSettingsPanel({
                     )
                   }
                   placeholder="None"
-                  className="w-full bg-white border border-[#E6E6E8] rounded-[6px] px-2 py-1 text-xs text-[#2B2530] focus:outline-hidden"
+                  className="w-full bg-[var(--surface-page)] border border-[var(--border)] rounded-[6px] px-2 py-1 text-xs text-[var(--text-primary)] focus:outline-hidden"
                 />
               </div>
               <div>
-                <label className="text-[10px] text-[#6B6570] block mb-1">
+                <label className="text-[10px] text-[var(--text-secondary)] block mb-1">
                   Max value
                 </label>
                 <input
@@ -322,7 +316,7 @@ export function RightSettingsPanel({
                     )
                   }
                   placeholder="None"
-                  className="w-full bg-white border border-[#E6E6E8] rounded-[6px] px-2 py-1 text-xs text-[#2B2530] focus:outline-hidden"
+                  className="w-full bg-[var(--surface-page)] border border-[var(--border)] rounded-[6px] px-2 py-1 text-xs text-[var(--text-primary)] focus:outline-hidden"
                 />
               </div>
             </div>
@@ -331,8 +325,8 @@ export function RightSettingsPanel({
 
         {/* Type-Specific: Short text / Long text max length */}
         {(question.type === "short_text" || question.type === "long_text") && (
-          <div className="space-y-2 pt-2 border-t border-[#EAEAEC]">
-            <label className="text-xs font-medium text-[#2B2530] block">
+          <div className="space-y-2 pt-2 border-t border-[var(--border)]">
+            <label className="text-xs font-medium text-[var(--text-primary)] block">
               Max Characters
             </label>
             <input
@@ -345,14 +339,14 @@ export function RightSettingsPanel({
                 )
               }
               placeholder={question.type === "short_text" ? "255" : "5000"}
-              className="w-full bg-white border border-[#E6E6E8] rounded-[6px] px-2.5 py-1.5 text-xs text-[#2B2530] focus:outline-hidden"
+              className="w-full bg-[var(--surface-page)] border border-[var(--border)] rounded-[6px] px-2.5 py-1.5 text-xs text-[var(--text-primary)] focus:outline-hidden"
             />
           </div>
         )}
       </div>
 
       {/* Card 3: Logic Card (placeholder) */}
-      <div className="bg-[#F5F5F5] rounded-[16px] border border-[#E6E6E8] p-3.5 flex items-center justify-between text-xs font-semibold text-[#2B2530]">
+      <div className="bg-[var(--surface-card)] rounded-[16px] border border-[var(--border)] p-3.5 flex items-center justify-between text-xs font-semibold text-[var(--text-primary)]">
         <div className="flex items-center gap-2">
           <span>Logic Jumps</span>
           <span className="text-[10px] text-[#2F7D69] bg-[#E6F4EA] px-1 py-0.5 rounded-[4px]">
@@ -362,7 +356,7 @@ export function RightSettingsPanel({
         <button
           type="button"
           onClick={() => toast.info("Logic branching and jump rules (Phase 6 bonus)")}
-          className="w-5 h-5 rounded-[4px] border border-[#D4D2D6] hover:bg-white flex items-center justify-center text-[#6B6570]"
+          className="w-5 h-5 rounded-[4px] border border-[var(--border-strong)] hover:bg-[var(--surface-page)] flex items-center justify-center text-[var(--text-secondary)]"
           title="Add logic rule"
         >
           <Plus className="w-3 h-3" />

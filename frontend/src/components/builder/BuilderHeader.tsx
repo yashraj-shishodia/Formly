@@ -12,6 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { FormDetail } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -49,12 +50,12 @@ export function BuilderHeader({
   const isPublished = form.status === "published";
 
   return (
-    <header className="h-16 border-b border-[#E6E6E8] bg-white px-4 md:px-6 flex items-center justify-between select-none relative z-20">
+    <header className="h-16 border-b border-[var(--border)] bg-[var(--surface-page)] px-4 md:px-6 flex items-center justify-between select-none relative z-20">
       {/* Left: Breadcrumbs & Inline Title Editing */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <Link
           href="/"
-          className="flex items-center gap-1.5 text-xs font-semibold text-[#6B6570] hover:text-[#2B2530] transition-colors p-1 rounded-[6px] hover:bg-[#F5F5F5] shrink-0"
+          className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-1 rounded-[6px] hover:bg-[var(--surface-card-hover)] shrink-0"
           title="Back to Workspace"
           aria-label="Back to forms"
         >
@@ -62,7 +63,7 @@ export function BuilderHeader({
           <span className="hidden sm:inline">Forms</span>
         </Link>
 
-        <ChevronRight className="w-3 h-3 text-[#A8A3AD] shrink-0" />
+        <ChevronRight className="w-3 h-3 text-[var(--text-muted)] shrink-0" />
 
         <input
           type="text"
@@ -74,7 +75,7 @@ export function BuilderHeader({
               (e.target as HTMLInputElement).blur();
             }
           }}
-          className="text-xs sm:text-sm font-semibold text-[#2B2530] bg-transparent border border-transparent hover:border-[#D4D2D6] focus:border-[#2B2530] px-1.5 sm:px-2 py-1 rounded-[6px] focus:outline-hidden transition-all truncate max-w-[120px] sm:max-w-[200px] md:max-w-[260px]"
+          className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] bg-transparent border border-transparent hover:border-[var(--border-strong)] focus:border-[var(--primary)] px-1.5 sm:px-2 py-1 rounded-[6px] focus:outline-hidden transition-all truncate max-w-[120px] sm:max-w-[200px] md:max-w-[260px]"
           title="Click to rename form"
           aria-label="Form title"
         />
@@ -87,13 +88,16 @@ export function BuilderHeader({
           onClick={() => setActiveTab("content")}
           className={`h-full flex items-center px-2 text-sm font-medium relative transition-colors ${
             activeTab === "content"
-              ? "text-[#2B2530] font-semibold"
-              : "text-[#6B6570] hover:text-[#2B2530]"
+              ? "text-[var(--text-primary)] font-semibold"
+              : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           }`}
         >
-          {/* Top-edge dark line indicator per DESIGN_SPEC §3 */}
+          {/* Top-edge indicator line per DESIGN_SPEC §3 */}
           {activeTab === "content" && (
-            <span className="absolute top-0 left-0 right-0 h-0.5 bg-[#2B2530]" />
+            <span
+              className="absolute top-0 left-0 right-0 h-0.5"
+              style={{ backgroundColor: "var(--primary)" }}
+            />
           )}
           <span>Content</span>
         </button>
@@ -101,10 +105,10 @@ export function BuilderHeader({
         <button
           type="button"
           onClick={() => toast.info("Workflow logic builder is a placeholder (Coming Soon)")}
-          className="h-full flex items-center gap-1.5 px-2 text-sm font-medium text-[#A8A3AD] hover:text-[#6B6570] transition-colors"
+          className="h-full flex items-center gap-1.5 px-2 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
         >
           <span>Workflow</span>
-          <span className="text-[10px] text-[#2F7D69] bg-[#E6F4EA] px-1 py-0.5 rounded-[4px]">
+          <span className="text-[10px] text-[var(--accent-publish)] bg-[var(--accent-publish)]/10 px-1 py-0.5 rounded-[4px]">
             Soon
           </span>
         </button>
@@ -112,21 +116,21 @@ export function BuilderHeader({
         <button
           type="button"
           onClick={() => toast.info("Integrations & webhooks are a placeholder (Coming Soon)")}
-          className="h-full flex items-center gap-1.5 px-2 text-sm font-medium text-[#A8A3AD] hover:text-[#6B6570] transition-colors"
+          className="h-full flex items-center gap-1.5 px-2 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
         >
           <span>Connect</span>
-          <span className="text-[10px] text-[#2F7D69] bg-[#E6F4EA] px-1 py-0.5 rounded-[4px]">
+          <span className="text-[10px] text-[var(--accent-publish)] bg-[var(--accent-publish)]/10 px-1 py-0.5 rounded-[4px]">
             Soon
           </span>
         </button>
       </div>
 
-      {/* Right: Results, Share, Publish, Avatar */}
-      <div className="flex items-center gap-1.5 sm:gap-3">
+      {/* Right: Results, Share, Publish, ThemeToggle, Avatar */}
+      <div className="flex items-center gap-1.5 sm:gap-2.5">
         {/* Results Link */}
         <Link href={`/forms/${form.id}/results`}>
           <Button variant="ghost" size="sm" className="gap-1.5 text-xs font-medium px-2 sm:px-3.5" title="Results">
-            <BarChart2 className="w-3.5 h-3.5 text-[#6B6570]" />
+            <BarChart2 className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
             <span className="hidden sm:inline">Results</span>
           </Button>
         </Link>
@@ -143,7 +147,7 @@ export function BuilderHeader({
           <span className="hidden sm:inline">Share</span>
         </Button>
 
-        <div className="w-px h-5 bg-[#E6E6E8] mx-0.5" />
+        <div className="w-px h-5 bg-[var(--border)] mx-0.5" />
 
         {/* Muted Green Publish Button per DESIGN_SPEC §1 (#2F7D69) */}
         <Button
@@ -155,8 +159,8 @@ export function BuilderHeader({
         >
           {isPublished ? (
             <>
-              <Check className="w-3.5 h-3.5 text-[#2F7D69]" />
-              <span className="text-[#2F7D69]">Published</span>
+              <Check className="w-3.5 h-3.5 text-[var(--accent-publish)]" />
+              <span className="text-[var(--accent-publish)]">Published</span>
             </>
           ) : (
             <>
@@ -166,18 +170,22 @@ export function BuilderHeader({
           )}
         </Button>
 
+        {/* Dark Mode Toggle */}
+        <ThemeToggle />
+
         {/* Help icon */}
         <button
           type="button"
           onClick={() => toast.info("Builder keyboard shortcuts: Enter to add line, click canvas to edit title/description")}
-          className="w-8 h-8 rounded-full hover:bg-[#F5F5F5] flex items-center justify-center text-[#6B6570] transition-colors"
+          className="w-8 h-8 rounded-full hover:bg-[var(--surface-card-hover)] flex items-center justify-center text-[var(--text-secondary)] transition-colors"
           title="Help & Shortcuts"
+          aria-label="Help & Shortcuts"
         >
           <HelpCircle className="w-4 h-4" />
         </button>
 
         {/* User round avatar */}
-        <div className="w-8 h-8 rounded-full bg-[#D9D9DC] border border-[#C5C3C8] text-[#2B2530] font-bold text-xs flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full bg-[var(--surface-row)] border border-[var(--border-strong)] text-[var(--text-primary)] font-bold text-xs flex items-center justify-center">
           YS
         </div>
       </div>

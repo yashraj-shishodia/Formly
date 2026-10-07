@@ -36,25 +36,25 @@ export function DeleteModal({ form, isOpen, onClose }: DeleteModalProps) {
     >
       <div className="space-y-4 pt-1">
         {/* Warning Icon & Details */}
-        <div className="flex items-start gap-3 p-3.5 bg-red-50/70 border border-red-200/60 rounded-[12px] text-red-900">
-          <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 p-3.5 bg-[var(--accent-error-bg)] border border-[var(--accent-error)]/30 rounded-[12px] text-[var(--accent-error)]">
+          <AlertTriangle className="w-5 h-5 text-[var(--accent-error)] shrink-0 mt-0.5" />
           <div className="text-sm space-y-1">
-            <p className="font-medium text-red-950">
+            <p className="font-medium">
               This action cannot be undone.
             </p>
-            <p className="text-xs text-red-800 leading-relaxed">
+            <p className="text-xs opacity-90 leading-relaxed">
               Deleting <strong className="font-semibold">&quot;{form.title}&quot;</strong> will permanently remove all questions, logic settings, and{" "}
               <strong>{form.response_count}</strong> submitted responses from the database.
             </p>
           </div>
         </div>
 
-        <p className="text-xs text-[#6B6570]">
+        <p className="text-xs text-[var(--text-secondary)]">
           Are you sure you want to proceed with deleting this form?
         </p>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#E6E6E8]">
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[var(--border)]">
           <Button
             type="button"
             variant="secondary"

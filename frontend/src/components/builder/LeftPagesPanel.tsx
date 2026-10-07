@@ -118,8 +118,8 @@ function SortableQuestionRow({
       onClick={onSelect}
       className={`group relative flex items-center justify-between px-2.5 py-2 rounded-[8px] cursor-pointer transition-all ${
         isSelected
-          ? "bg-[#EAEAEC] text-[#2B2530] font-medium shadow-2xs"
-          : "hover:bg-[#F5F5F5] text-[#2B2530]"
+          ? "bg-[var(--surface-canvas)] text-[var(--text-primary)] font-medium shadow-2xs"
+          : "hover:bg-[var(--surface-card-hover)] text-[var(--text-primary)]"
       }`}
     >
       <div className="flex items-center gap-2 truncate">
@@ -128,7 +128,7 @@ function SortableQuestionRow({
           type="button"
           {...attributes}
           {...listeners}
-          className="text-[#A8A3AD] hover:text-[#2B2530] cursor-grab active:cursor-grabbing p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+          className="text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-grab active:cursor-grabbing p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
           title="Drag to reorder"
           onClick={(e) => e.stopPropagation()}
         >
@@ -143,7 +143,7 @@ function SortableQuestionRow({
         </div>
 
         {/* Number */}
-        <span className="text-xs font-bold text-[#6B6570] shrink-0">
+        <span className="text-xs font-bold text-[var(--text-secondary)] shrink-0">
           {index + 1}
         </span>
 
@@ -158,7 +158,7 @@ function SortableQuestionRow({
         <button
           type="button"
           onClick={onDuplicate}
-          className="p-1 rounded-[4px] hover:bg-white text-[#6B6570] hover:text-[#2B2530] transition-colors"
+          className="p-1 rounded-[4px] hover:bg-[var(--surface-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
           title="Duplicate"
         >
           <Copy className="w-3 h-3" />
@@ -166,7 +166,7 @@ function SortableQuestionRow({
         <button
           type="button"
           onClick={onDelete}
-          className="p-1 rounded-[4px] hover:bg-white text-[#6B6570] hover:text-[#D9383A] transition-colors"
+          className="p-1 rounded-[4px] hover:bg-[var(--surface-card)] text-[var(--text-secondary)] hover:text-[var(--accent-error)] transition-colors"
           title="Delete"
         >
           <Trash2 className="w-3 h-3" />
@@ -214,37 +214,37 @@ export function LeftPagesPanel({
   return (
     <div className="w-full lg:w-[270px] shrink-0 flex flex-col gap-3.5 select-none overflow-y-auto pr-1">
       {/* Card 1: Mode selector pill */}
-      <div className="p-3 bg-[#F5F5F5] rounded-[14px] border border-[#E6E6E8] flex items-center justify-between text-xs text-[#2B2530] font-medium cursor-default">
+      <div className="p-3 bg-[var(--surface-card)] rounded-[14px] border border-[var(--border)] flex items-center justify-between text-xs text-[var(--text-primary)] font-medium cursor-default">
         <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-[#6B6570]" />
+          <Layers className="w-4 h-4 text-[var(--text-secondary)]" />
           <span>Universal mode</span>
         </div>
-        <ChevronDown className="w-3.5 h-3.5 text-[#A8A3AD]" />
+        <ChevronDown className="w-3.5 h-3.5 text-[var(--text-muted)]" />
       </div>
 
       {/* Card 2: Pages List */}
-      <div className="bg-[#F5F5F5] rounded-[16px] border border-[#E6E6E8] p-3.5 flex flex-col gap-3">
+      <div className="bg-[var(--surface-card)] rounded-[16px] border border-[var(--border)] p-3.5 flex flex-col gap-3">
         <div className="flex items-center justify-between px-1">
-          <span className="text-sm font-semibold text-[#2B2530]">Pages</span>
-          <span className="text-xs text-[#6B6570] font-medium">
+          <span className="text-sm font-semibold text-[var(--text-primary)]">Pages</span>
+          <span className="text-xs text-[var(--text-secondary)] font-medium">
             {questions.length}
           </span>
         </div>
 
         {/* Inner bordered container */}
-        <div className="bg-white rounded-[12px] border border-[#E6E6E8] p-2 flex flex-col gap-1">
+        <div className="bg-[var(--surface-page)] rounded-[12px] border border-[var(--border)] p-2 flex flex-col gap-1">
           {/* Welcome screen entry (if enabled) */}
           {welcomeScreenEnabled && (
             <div
               onClick={onSelectWelcome}
               className={`flex items-center justify-between px-2.5 py-2 rounded-[8px] cursor-pointer transition-colors ${
                 isWelcomeSelected
-                  ? "bg-[#EAEAEC] font-semibold text-[#2B2530]"
-                  : "hover:bg-[#F5F5F5] text-[#2B2530]"
+                  ? "bg-[var(--surface-canvas)] font-semibold text-[var(--text-primary)]"
+                  : "hover:bg-[var(--surface-card-hover)] text-[var(--text-primary)]"
               }`}
             >
               <div className="flex items-center gap-2 truncate">
-                <div className="w-5 h-5 rounded-[4px] bg-[#F0EFF2] text-[#2B2530] flex items-center justify-center shrink-0">
+                <div className="w-5 h-5 rounded-[4px] bg-[var(--surface-row)] text-[var(--text-primary)] flex items-center justify-center shrink-0">
                   <Layers className="w-3 h-3" />
                 </div>
                 <span className="text-xs">Welcome Screen</span>
@@ -285,11 +285,11 @@ export function LeftPagesPanel({
           </DndContext>
 
           {/* Bottom Divider and + Add content text button */}
-          <div className="pt-2 mt-1 border-t border-[#F0EFF2]">
+          <div className="pt-2 mt-1 border-t border-[var(--border)]">
             <button
               type="button"
               onClick={onOpenAddModal}
-              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-[6px] hover:bg-[#F5F5F5] text-xs font-semibold text-[#2B2530] transition-colors"
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-[6px] hover:bg-[var(--surface-card)] text-xs font-semibold text-[var(--text-primary)] transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add content</span>
@@ -299,13 +299,13 @@ export function LeftPagesPanel({
       </div>
 
       {/* Card 3: Endings List */}
-      <div className="bg-[#F5F5F5] rounded-[16px] border border-[#E6E6E8] p-3.5 flex flex-col gap-2.5">
+      <div className="bg-[var(--surface-card)] rounded-[16px] border border-[var(--border)] p-3.5 flex flex-col gap-2.5">
         <div className="flex items-center justify-between px-1">
-          <span className="text-sm font-semibold text-[#2B2530]">Endings</span>
+          <span className="text-sm font-semibold text-[var(--text-primary)]">Endings</span>
           <button
             type="button"
             onClick={onSelectEndings}
-            className="w-5 h-5 rounded-[4px] border border-[#D4D2D6] hover:bg-white flex items-center justify-center text-[#6B6570]"
+            className="w-5 h-5 rounded-[4px] border border-[var(--border-strong)] hover:bg-[var(--surface-page)] flex items-center justify-center text-[var(--text-secondary)]"
             title="Edit Endings"
           >
             <Plus className="w-3 h-3" />
@@ -317,8 +317,8 @@ export function LeftPagesPanel({
           onClick={onSelectEndings}
           className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] border text-left transition-colors text-xs ${
             isEndingsSelected
-              ? "bg-[#EAEAEC] border-[#C5C3C8] text-[#2B2530] font-semibold"
-              : "bg-white border-[#E6E6E8] text-[#2B2530] hover:bg-[#FAFAFA]"
+              ? "bg-[var(--surface-canvas)] border-[var(--border-strong)] text-[var(--text-primary)] font-semibold"
+              : "bg-[var(--surface-page)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-inner)]"
           }`}
         >
           <div className="w-5 h-5 rounded-[4px] bg-[#E6F4EA] text-[#2F7D69] flex items-center justify-center shrink-0">
@@ -329,8 +329,8 @@ export function LeftPagesPanel({
       </div>
 
       {/* Card 4: Ask Formly AI pill */}
-      <div className="p-3 rounded-[12px] bg-[#F3EAFB]/50 border border-[#8E4FC0]/30 flex items-center gap-2.5 text-xs text-[#8E4FC0] font-semibold cursor-pointer hover:bg-[#F3EAFB]/70 transition-colors">
-        <Sparkles className="w-4 h-4 text-[#8E4FC0]" />
+      <div className="p-3 rounded-[12px] bg-[var(--accent-ai-fill)] border border-[var(--accent-ai-border)]/30 flex items-center gap-2.5 text-xs text-[var(--accent-ai-border)] font-semibold cursor-pointer hover:opacity-90 transition-opacity">
+        <Sparkles className="w-4 h-4 text-[var(--accent-ai-border)]" />
         <span>Ask Formly AI</span>
         <span className="ml-auto text-[10px] text-[#2F7D69] bg-[#E6F4EA] px-1 py-0.5 rounded-[4px]">
           Soon

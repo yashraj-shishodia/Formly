@@ -26,8 +26,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${karla.variable}`}>
-      <body className="min-h-screen flex flex-col bg-white text-[#2B2530] font-sans antialiased">
+    <html lang="en" className={`${inter.variable} ${karla.variable}`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('formly-theme');var d=window.matchMedia('(prefers-color-scheme: dark)').matches;if(s==='dark'||(!s&&d)){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`,
+          }}
+        />
+      </head>
+      <body className="min-h-screen flex flex-col bg-[var(--surface-page)] text-[var(--text-primary)] font-sans antialiased transition-colors duration-150">
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCreateForm } from "@/hooks/useForms";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export default function NewFormPage() {
   const router = useRouter();
@@ -54,31 +55,32 @@ export default function NewFormPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans">
+    <div className="min-h-screen bg-[var(--surface-page)] flex flex-col font-sans">
       {/* Top Header / Breadcrumb per DESIGN_SPEC §5 */}
-      <header className="h-16 border-b border-[#E6E6E8] px-6 flex items-center justify-between">
+      <header className="h-16 border-b border-[var(--border)] px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="flex items-center gap-1.5 text-sm font-medium text-[#6B6570] hover:text-[#2B2530] transition-colors"
+            className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Workspace</span>
           </Link>
-          <span className="text-[#D4D2D6]">/</span>
-          <span className="text-sm font-semibold text-[#2B2530]">New form</span>
+          <span className="text-[var(--border-strong)]">/</span>
+          <span className="text-sm font-semibold text-[var(--text-primary)]">New form</span>
         </div>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <button
             type="button"
-            className="w-8 h-8 rounded-full hover:bg-[#F5F5F5] flex items-center justify-center text-[#6B6570] transition-colors"
+            className="w-8 h-8 rounded-full hover:bg-[var(--surface-card)] flex items-center justify-center text-[var(--text-secondary)] transition-colors"
             title="Help & docs"
             onClick={() => toast.info("Help & documentation available in docs/")}
           >
             <HelpCircle className="w-4 h-4" />
           </button>
-          <div className="w-8 h-8 rounded-full bg-[#D9D9DC] border border-[#C5C3C8] text-[#2B2530] font-bold text-xs flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-[var(--surface-row)] border border-[var(--border-strong)] text-[var(--text-primary)] font-bold text-xs flex items-center justify-center">
             YS
           </div>
         </div>
@@ -86,14 +88,14 @@ export default function NewFormPage() {
 
       {/* Main Canvas Area: One big rounded gray panel (#F5F5F5) per DESIGN_SPEC §5 */}
       <main className="flex-1 p-6 md:p-10 flex items-center justify-center">
-        <div className="w-full max-w-4xl bg-[#F5F5F5] border border-[#E6E6E8] rounded-[24px] p-8 md:p-14 flex flex-col items-center text-center shadow-xs">
+        <div className="w-full max-w-4xl bg-[var(--surface-card)] border border-[var(--border)] rounded-[24px] p-8 md:p-14 flex flex-col items-center text-center shadow-xs">
           {/* AI Header */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F3EAFB] border border-[#8E4FC0]/20 text-[#8E4FC0] text-xs font-semibold uppercase tracking-wider mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-ai-fill)] border border-[var(--accent-ai-border)]/20 text-[var(--accent-ai-border)] text-xs font-semibold uppercase tracking-wider mb-4">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Formly AI</span>
           </div>
 
-          <h1 className="text-3xl md:text-4xl font-normal text-[#2B2530] tracking-tight mb-8">
+          <h1 className="text-3xl md:text-4xl font-normal text-[var(--text-primary)] tracking-tight mb-8">
             What would you like to create?
           </h1>
 
@@ -157,8 +159,8 @@ export default function NewFormPage() {
           </form>
 
           {/* Divider */}
-          <div className="w-full max-w-2xl my-8 border-t border-[#E6E6E8] flex items-center justify-center relative">
-            <span className="bg-[#F5F5F5] px-4 text-xs font-medium text-[#A8A3AD] uppercase tracking-wider">
+          <div className="w-full max-w-2xl my-8 border-t border-[var(--border)] flex items-center justify-center relative">
+            <span className="bg-[var(--surface-card)] px-4 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
               Or start manually
             </span>
           </div>
@@ -169,9 +171,9 @@ export default function NewFormPage() {
               type="button"
               onClick={handleStartFromScratch}
               disabled={createMutation.isPending}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-[#EAEAEC] text-[#2B2530] text-sm font-semibold border border-[#E6E6E8] transition-all shadow-2xs hover:border-[#C5C3C8]"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--surface-page)] hover:bg-[var(--surface-card-hover)] text-[var(--text-primary)] text-sm font-semibold border border-[var(--border)] transition-all shadow-2xs hover:border-[var(--border-strong)]"
             >
-              <Layers className="w-4 h-4 text-[#2B2530]" />
+              <Layers className="w-4 h-4 text-[var(--text-primary)]" />
               <span>Start from scratch</span>
             </button>
 
@@ -180,9 +182,9 @@ export default function NewFormPage() {
               onClick={() =>
                 toast.info("CRM Sync integration is a placeholder (Coming Soon)")
               }
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/70 hover:bg-white text-[#6B6570] text-sm font-medium border border-[#E6E6E8] transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--surface-page)]/70 hover:bg-[var(--surface-page)] text-[var(--text-secondary)] text-sm font-medium border border-[var(--border)] transition-all"
             >
-              <Database className="w-4 h-4 text-[#A8A3AD]" />
+              <Database className="w-4 h-4 text-[var(--text-muted)]" />
               <span>Sync to CRM</span>
               <span className="text-[10px] font-medium text-[#2F7D69] bg-[#E6F4EA] px-1.5 py-0.5 rounded-[4px] border border-[#2F7D69]/20">
                 Soon

@@ -14,7 +14,6 @@ import {
   Star,
   Upload,
   CreditCard,
-  Sparkles,
   FileQuestion,
   Layers,
 } from "lucide-react";
@@ -218,20 +217,20 @@ export function AddContentModal({
     >
       <div className="-m-7 flex flex-col max-h-[85vh]">
         {/* Top Header Tabs with top-edge line per DESIGN_SPEC §4 (ref-13) */}
-        <div className="flex items-center justify-between px-8 pt-5 pb-0 border-b border-[#E6E6E8]">
+        <div className="flex items-center justify-between px-8 pt-5 pb-0 border-b border-[var(--border)]">
           <div className="flex items-center gap-8 text-sm font-medium">
             <button
               type="button"
               onClick={() => setActiveTab("elements")}
               className={`pb-4 pt-1 relative transition-colors ${
                 activeTab === "elements"
-                  ? "text-[#2B2530] font-semibold"
-                  : "text-[#6B6570] hover:text-[#2B2530]"
+                  ? "text-[var(--text-primary)] font-semibold"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >
               {/* Short dark line at top edge */}
               {activeTab === "elements" && (
-                <span className="absolute top-0 left-0 right-0 h-0.5 bg-[#2B2530] rounded-full" />
+                <span className="absolute top-0 left-0 right-0 h-0.5 bg-[var(--primary)] rounded-full" />
               )}
               Add form elements
             </button>
@@ -239,7 +238,7 @@ export function AddContentModal({
             <button
               type="button"
               onClick={() => setActiveTab("import")}
-              className={`pb-4 pt-1 relative text-[#A8A3AD] cursor-not-allowed`}
+              className={`pb-4 pt-1 relative text-[var(--text-muted)] cursor-not-allowed`}
               disabled
             >
               Import questions
@@ -251,7 +250,7 @@ export function AddContentModal({
             <button
               type="button"
               onClick={() => setActiveTab("ai")}
-              className={`pb-4 pt-1 relative text-[#A8A3AD] cursor-not-allowed`}
+              className={`pb-4 pt-1 relative text-[var(--text-muted)] cursor-not-allowed`}
               disabled
             >
               Create with AI
@@ -264,38 +263,38 @@ export function AddContentModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-[#F5F5F5] text-[#6B6570] hover:text-[#2B2530] transition-colors -mt-3"
+            className="p-1.5 rounded-full hover:bg-[var(--surface-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors -mt-3"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Modal Inner Body: Two columns (~260px left sidebar + elements grid) */}
-        <div className="flex flex-1 overflow-hidden bg-[#FAFAFA]">
+        <div className="flex flex-1 overflow-hidden bg-[var(--surface-inner)]">
           {/* Left Sub-column (~260px) */}
-          <div className="w-64 p-6 border-r border-[#E6E6E8] bg-white flex flex-col gap-6 shrink-0">
+          <div className="w-64 p-6 border-r border-[var(--border)] bg-[var(--surface-page)] flex flex-col gap-6 shrink-0">
             {/* Search Box */}
             <div className="relative">
-              <Search className="w-4 h-4 text-[#A8A3AD] absolute left-3 top-2.5" />
+              <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-2.5" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search elements..."
                 autoFocus
-                className="w-full pl-9 pr-3 py-1.5 bg-[#F5F5F5] border border-[#E6E6E8] rounded-[8px] text-xs text-[#2B2530] placeholder-[#A8A3AD] focus:outline-hidden focus:border-[#2B2530]"
+                className="w-full pl-9 pr-3 py-1.5 bg-[var(--surface-card)] border border-[var(--border)] rounded-[8px] text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-hidden focus:border-[var(--primary)]"
               />
             </div>
 
             {/* Quick Suggestions */}
             <div className="space-y-3">
-              <span className="text-[11px] font-bold text-[#A8A3AD] uppercase tracking-wider block">
+              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider block">
                 Recommended
               </span>
               <button
                 type="button"
                 onClick={() => handleItemClick(FORM_ELEMENTS[0])}
-                className="w-full flex items-center gap-2.5 p-2 rounded-[8px] hover:bg-[#F5F5F5] text-left transition-colors text-xs text-[#2B2530]"
+                className="w-full flex items-center gap-2.5 p-2 rounded-[8px] hover:bg-[var(--surface-card-hover)] text-left transition-colors text-xs text-[var(--text-primary)]"
               >
                 <div className="w-6 h-6 rounded-[5px] bg-[#E1F0FF] text-[#0066CC] flex items-center justify-center shrink-0">
                   <Type className="w-3.5 h-3.5" />
@@ -306,7 +305,7 @@ export function AddContentModal({
               <button
                 type="button"
                 onClick={() => handleItemClick(FORM_ELEMENTS[2])}
-                className="w-full flex items-center gap-2.5 p-2 rounded-[8px] hover:bg-[#F5F5F5] text-left transition-colors text-xs text-[#2B2530]"
+                className="w-full flex items-center gap-2.5 p-2 rounded-[8px] hover:bg-[var(--surface-card-hover)] text-left transition-colors text-xs text-[var(--text-primary)]"
               >
                 <div className="w-6 h-6 rounded-[5px] bg-[#F3EAFB] text-[#8E4FC0] flex items-center justify-center shrink-0">
                   <ListFilter className="w-3.5 h-3.5" />
@@ -317,7 +316,7 @@ export function AddContentModal({
               <button
                 type="button"
                 onClick={() => handleItemClick(FORM_ELEMENTS[6])}
-                className="w-full flex items-center gap-2.5 p-2 rounded-[8px] hover:bg-[#F5F5F5] text-left transition-colors text-xs text-[#2B2530]"
+                className="w-full flex items-center gap-2.5 p-2 rounded-[8px] hover:bg-[var(--surface-card-hover)] text-left transition-colors text-xs text-[var(--text-primary)]"
               >
                 <div className="w-6 h-6 rounded-[5px] bg-[#E6F4EA] text-[#2F7D69] flex items-center justify-center shrink-0">
                   <Star className="w-3.5 h-3.5" />
@@ -335,7 +334,7 @@ export function AddContentModal({
 
               return (
                 <div key={category} className="space-y-3">
-                  <h4 className="text-xs font-bold text-[#6B6570] uppercase tracking-wider">
+                  <h4 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
                     {category}
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -349,8 +348,8 @@ export function AddContentModal({
                           onClick={() => handleItemClick(item)}
                           className={`flex items-center justify-between p-3 rounded-[10px] border transition-all text-left ${
                             item.disabled
-                              ? "bg-white/60 border-[#E6E6E8] opacity-60 cursor-not-allowed"
-                              : "bg-white hover:bg-[#F9F9FA] border-[#E6E6E8] hover:border-[#C5C3C8] shadow-2xs hover:shadow-xs cursor-pointer"
+                              ? "bg-[var(--surface-page)]/60 border-[var(--border)] opacity-60 cursor-not-allowed"
+                              : "bg-[var(--surface-page)] hover:bg-[var(--surface-card-hover)] border-[var(--border)] hover:border-[var(--border-strong)] shadow-2xs hover:shadow-xs cursor-pointer"
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -359,7 +358,7 @@ export function AddContentModal({
                             >
                               <Icon className="w-4 h-4" />
                             </div>
-                            <span className="text-sm font-medium text-[#2B2530]">
+                            <span className="text-sm font-medium text-[var(--text-primary)]">
                               {item.label}
                             </span>
                           </div>

@@ -31,7 +31,7 @@ export function DesignModal({
 
   useEffect(() => {
     if (currentTheme) {
-      setTheme(currentTheme);
+      setTheme((prev) => (prev === currentTheme ? prev : currentTheme));
     }
   }, [currentTheme]);
 
@@ -51,13 +51,13 @@ export function DesignModal({
       <div className="space-y-4 pt-2">
         {/* Font Selection */}
         <div>
-          <label className="text-xs font-semibold text-[#6B6570] uppercase tracking-wider block mb-1.5">
+          <label className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider block mb-1.5">
             Respondent Font
           </label>
           <select
             value={theme.font}
             onChange={(e) => setTheme({ ...theme, font: e.target.value })}
-            className="w-full bg-white border border-[#E6E6E8] rounded-[8px] px-3 py-2 text-sm text-[#2B2530] focus:outline-hidden focus:border-[#2B2530]"
+            className="w-full bg-[var(--surface-page)] border border-[var(--border)] rounded-[8px] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-hidden focus:border-[var(--primary)]"
           >
             {ALLOWED_FONT_LIST.map((f) => (
               <option key={f.name} value={f.name}>
@@ -69,13 +69,13 @@ export function DesignModal({
 
         {/* Color Palette */}
         <div className="space-y-3">
-          <label className="text-xs font-semibold text-[#6B6570] uppercase tracking-wider block">
+          <label className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider block">
             Color Palette
           </label>
 
           {/* Background Color */}
-          <div className="flex items-center justify-between p-2.5 bg-[#F5F5F5] rounded-[8px] border border-[#E6E6E8]">
-            <span className="text-xs text-[#2B2530] font-medium">
+          <div className="flex items-center justify-between p-2.5 bg-[var(--surface-card)] rounded-[8px] border border-[var(--border)]">
+            <span className="text-xs text-[var(--text-primary)] font-medium">
               Background Color
             </span>
             <div className="flex items-center gap-2">
@@ -85,17 +85,17 @@ export function DesignModal({
                 onChange={(e) =>
                   setTheme({ ...theme, background_color: e.target.value })
                 }
-                className="w-7 h-7 rounded-[4px] cursor-pointer border border-[#D4D2D6]"
+                className="w-7 h-7 rounded-[4px] cursor-pointer border border-[var(--border-strong)]"
               />
-              <span className="text-xs font-mono text-[#6B6570]">
+              <span className="text-xs font-mono text-[var(--text-secondary)]">
                 {theme.background_color}
               </span>
             </div>
           </div>
 
           {/* Text Color */}
-          <div className="flex items-center justify-between p-2.5 bg-[#F5F5F5] rounded-[8px] border border-[#E6E6E8]">
-            <span className="text-xs text-[#2B2530] font-medium">Text Color</span>
+          <div className="flex items-center justify-between p-2.5 bg-[var(--surface-card)] rounded-[8px] border border-[var(--border)]">
+            <span className="text-xs text-[var(--text-primary)] font-medium">Text Color</span>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -103,17 +103,17 @@ export function DesignModal({
                 onChange={(e) =>
                   setTheme({ ...theme, text_color: e.target.value })
                 }
-                className="w-7 h-7 rounded-[4px] cursor-pointer border border-[#D4D2D6]"
+                className="w-7 h-7 rounded-[4px] cursor-pointer border border-[var(--border-strong)]"
               />
-              <span className="text-xs font-mono text-[#6B6570]">
+              <span className="text-xs font-mono text-[var(--text-secondary)]">
                 {theme.text_color}
               </span>
             </div>
           </div>
 
           {/* Button Color */}
-          <div className="flex items-center justify-between p-2.5 bg-[#F5F5F5] rounded-[8px] border border-[#E6E6E8]">
-            <span className="text-xs text-[#2B2530] font-medium">
+          <div className="flex items-center justify-between p-2.5 bg-[var(--surface-card)] rounded-[8px] border border-[var(--border)]">
+            <span className="text-xs text-[var(--text-primary)] font-medium">
               Primary Button Color
             </span>
             <div className="flex items-center gap-2">
@@ -123,9 +123,9 @@ export function DesignModal({
                 onChange={(e) =>
                   setTheme({ ...theme, button_color: e.target.value })
                 }
-                className="w-7 h-7 rounded-[4px] cursor-pointer border border-[#D4D2D6]"
+                className="w-7 h-7 rounded-[4px] cursor-pointer border border-[var(--border-strong)]"
               />
-              <span className="text-xs font-mono text-[#6B6570]">
+              <span className="text-xs font-mono text-[var(--text-secondary)]">
                 {theme.button_color}
               </span>
             </div>
@@ -133,7 +133,7 @@ export function DesignModal({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-[#E6E6E8]">
+        <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-[var(--border)]">
           <Button variant="secondary" size="md" onClick={onClose}>
             Cancel
           </Button>

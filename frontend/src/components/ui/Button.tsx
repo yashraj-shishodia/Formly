@@ -18,7 +18,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    "inline-flex items-center justify-center font-medium transition-all duration-150 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#2B2530] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none cursor-pointer";
+    "inline-flex items-center justify-center font-medium transition-all duration-150 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none cursor-pointer";
 
   const sizeStyles = {
     sm: "px-3.5 py-1.5 text-[13px] rounded-[8px] gap-1.5",
@@ -27,12 +27,12 @@ export function Button({
   };
 
   const variantStyles = {
-    primary: "bg-[#2B2530] text-white hover:bg-[#3A3340] active:scale-[0.99]",
-    publish: "bg-[#2F7D69] text-white hover:bg-[#286B5A] active:scale-[0.99]",
-    secondary: "bg-[#F5F5F5] text-[#2B2530] hover:bg-[#EAEAEC] active:scale-[0.99]",
-    outline: "border border-[#E6E6E8] text-[#2B2530] bg-white hover:bg-[#F5F5F5]",
-    danger: "bg-[#E53E3E] text-white hover:bg-[#C53030] active:scale-[0.99]",
-    ghost: "text-[#6B6570] hover:text-[#2B2530] hover:bg-[#F5F5F5]",
+    primary: "bg-[var(--primary)] text-[var(--surface-page)] hover:opacity-90 active:scale-[0.99]",
+    publish: "bg-[var(--accent-publish)] text-white hover:opacity-90 active:scale-[0.99]",
+    secondary: "bg-[var(--surface-card)] text-[var(--text-primary)] hover:bg-[var(--surface-card-hover)] border border-[var(--border)] active:scale-[0.99]",
+    outline: "border border-[var(--border)] text-[var(--text-primary)] bg-[var(--surface-page)] hover:bg-[var(--surface-card)]",
+    danger: "bg-[var(--accent-error)] text-white hover:opacity-90 active:scale-[0.99]",
+    ghost: "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-card-hover)]",
   };
 
   return (

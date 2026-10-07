@@ -4,10 +4,7 @@ import React, { useState, useMemo } from "react";
 import {
   Plus,
   Search,
-  SlidersHorizontal,
   ChevronDown,
-  Layers,
-  Sparkles,
   RefreshCw,
   Menu,
 } from "lucide-react";
@@ -103,7 +100,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="flex h-screen bg-white text-[#2B2530] font-sans overflow-hidden">
+    <div className="flex h-screen bg-[var(--surface-page)] text-[var(--text-primary)] font-sans overflow-hidden">
       {/* Left Sidebar (Desktop + Mobile Drawer) */}
       <Sidebar
         formCount={forms?.length}
@@ -112,24 +109,24 @@ export default function DashboardPage() {
       />
 
       {/* Main Workspace Area */}
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-[#FCFCFD]">
+      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-[var(--surface-page)]">
         {/* Workspace Top Header */}
-        <header className="px-4 md:px-8 py-5 md:py-6 border-b border-[#E6E6E8] bg-white sticky top-0 z-10">
+        <header className="px-4 md:px-8 py-5 md:py-6 border-b border-[var(--border)] bg-[var(--surface-page)] sticky top-0 z-10">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
-                className="md:hidden p-2 rounded-[8px] border border-[#E6E6E8] hover:bg-[#F5F5F5] text-[#2B2530] transition-colors"
+                className="md:hidden p-2 rounded-[8px] border border-[var(--border)] hover:bg-[var(--surface-card-hover)] text-[var(--text-primary)] transition-colors"
                 aria-label="Open workspace menu"
               >
                 <Menu className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-[#2B2530] tracking-tight">
+                <h1 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
                   My workspace
                 </h1>
-                <p className="text-xs text-[#6B6570] mt-0.5">
+                <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                   {forms?.length === 1
                     ? "1 form in this workspace"
                     : `${forms?.length ?? 0} forms in this workspace`}
@@ -142,7 +139,7 @@ export default function DashboardPage() {
                 type="button"
                 onClick={() => refetch()}
                 disabled={isRefetching}
-                className="w-9 h-9 rounded-[8px] border border-[#E6E6E8] hover:bg-[#F5F5F5] flex items-center justify-center text-[#6B6570] hover:text-[#2B2530] transition-colors disabled:opacity-50"
+                className="w-9 h-9 rounded-[8px] border border-[var(--border)] hover:bg-[var(--surface-card-hover)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-50"
                 title="Refresh forms"
                 aria-label="Refresh forms"
               >
@@ -164,7 +161,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Search, Filter Pills & Sort Bar */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mt-6 pt-4 border-t border-[#F0EFF2]">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mt-6 pt-4 border-t border-[var(--border)]">
             {/* Left: Status Filter Pills */}
             <div className="flex items-center gap-1.5">
               <button
@@ -172,8 +169,8 @@ export default function DashboardPage() {
                 onClick={() => setFilterStatus("all")}
                 className={`px-3 py-1.5 rounded-[8px] text-xs font-medium transition-colors ${
                   filterStatus === "all"
-                    ? "bg-[#2B2530] text-white"
-                    : "text-[#6B6570] hover:bg-[#F0EFF2]"
+                    ? "bg-[var(--primary)] text-[var(--surface-page)]"
+                    : "text-[var(--text-secondary)] hover:bg-[var(--surface-card-hover)]"
                 }`}
               >
                 All ({forms?.length ?? 0})
@@ -183,8 +180,8 @@ export default function DashboardPage() {
                 onClick={() => setFilterStatus("published")}
                 className={`px-3 py-1.5 rounded-[8px] text-xs font-medium transition-colors ${
                   filterStatus === "published"
-                    ? "bg-[#2B2530] text-white"
-                    : "text-[#6B6570] hover:bg-[#F0EFF2]"
+                    ? "bg-[var(--primary)] text-[var(--surface-page)]"
+                    : "text-[var(--text-secondary)] hover:bg-[var(--surface-card-hover)]"
                 }`}
               >
                 Published ({publishedCount})
@@ -194,8 +191,8 @@ export default function DashboardPage() {
                 onClick={() => setFilterStatus("draft")}
                 className={`px-3 py-1.5 rounded-[8px] text-xs font-medium transition-colors ${
                   filterStatus === "draft"
-                    ? "bg-[#2B2530] text-white"
-                    : "text-[#6B6570] hover:bg-[#F0EFF2]"
+                    ? "bg-[var(--primary)] text-[var(--surface-page)]"
+                    : "text-[var(--text-secondary)] hover:bg-[var(--surface-card-hover)]"
                 }`}
               >
                 Draft ({draftCount})
@@ -206,13 +203,13 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2.5">
               {/* Search Box */}
               <div className="relative w-full md:w-60">
-                <Search className="w-4 h-4 text-[#A8A3AD] absolute left-3 top-2.5" />
+                <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-2.5" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search forms..."
-                  className="w-full pl-9 pr-3 py-1.5 bg-white border border-[#E6E6E8] rounded-[8px] text-xs text-[#2B2530] placeholder-[#A8A3AD] focus:outline-hidden focus:border-[#2B2530]"
+                  className="w-full pl-9 pr-3 py-1.5 bg-[var(--surface-card)] border border-[var(--border)] rounded-[8px] text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-hidden focus:border-[var(--primary)]"
                 />
               </div>
 
@@ -221,7 +218,7 @@ export default function DashboardPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="appearance-none bg-white border border-[#E6E6E8] rounded-[8px] pl-3 pr-8 py-1.5 text-xs text-[#2B2530] font-medium focus:outline-hidden focus:border-[#2B2530] cursor-pointer"
+                  className="appearance-none bg-[var(--surface-card)] border border-[var(--border)] rounded-[8px] pl-3 pr-8 py-1.5 text-xs text-[var(--text-primary)] font-medium focus:outline-hidden focus:border-[var(--primary)] cursor-pointer"
                 >
                   <option value="updated_desc">Recently updated</option>
                   <option value="updated_asc">Oldest updated</option>
@@ -229,7 +226,7 @@ export default function DashboardPage() {
                   <option value="title_desc">Name (Z-A)</option>
                   <option value="responses_desc">Most responses</option>
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-[#A8A3AD] absolute right-2.5 top-2.5 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-[var(--text-muted)] absolute right-2.5 top-2.5 pointer-events-none" />
               </div>
             </div>
           </div>
@@ -243,7 +240,7 @@ export default function DashboardPage() {
               {[1, 2, 3].map((n) => (
                 <div
                   key={n}
-                  className="h-44 bg-[#F5F5F5] rounded-[16px] border border-[#E6E6E8]"
+                  className="h-44 bg-[var(--surface-card)] rounded-[16px] border border-[var(--border)]"
                 />
               ))}
             </div>

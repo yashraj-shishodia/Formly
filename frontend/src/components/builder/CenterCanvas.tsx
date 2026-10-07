@@ -7,7 +7,6 @@ import {
   Play,
   Check,
   Loader2,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Question, FormDetail } from "@/lib/types";
@@ -151,7 +150,7 @@ export function CenterCanvas({
   return (
     <div className="flex-1 flex flex-col gap-4 overflow-hidden">
       {/* Top Toolbar Card per DESIGN_SPEC §3 */}
-      <div className="bg-[#F5F5F5] rounded-[16px] border border-[#E6E6E8] px-4 py-2 flex items-center justify-between select-none">
+      <div className="bg-[var(--surface-card)] rounded-[16px] border border-[var(--border)] px-4 py-2 flex items-center justify-between select-none">
         <div className="flex items-center gap-2.5">
           {/* + Add content button */}
           <Button
@@ -164,35 +163,35 @@ export function CenterCanvas({
             <span>Add content</span>
           </Button>
 
-          <div className="w-px h-4 bg-[#D4D2D6]" />
+          <div className="w-px h-4 bg-[var(--border-strong)]" />
 
           {/* Design / Theme button */}
           <Button
             variant="ghost"
             size="sm"
             onClick={onOpenDesignModal}
-            className="gap-1.5 text-xs font-medium text-[#2B2530]"
+            className="gap-1.5 text-xs font-medium text-[var(--text-primary)]"
           >
             <Palette className="w-3.5 h-3.5 text-[#8E4FC0]" />
             <span>Design</span>
           </Button>
 
-          <div className="w-px h-4 bg-[#D4D2D6]" />
+          <div className="w-px h-4 bg-[var(--border-strong)]" />
 
           {/* Preview Button */}
           <Button
             variant="secondary"
             size="sm"
             onClick={onOpenPreview}
-            className="gap-1.5 text-xs font-medium bg-white"
+            className="gap-1.5 text-xs font-medium bg-[var(--surface-page)]"
           >
-            <Play className="w-3.5 h-3.5 fill-[#2B2530]" />
+            <Play className="w-3.5 h-3.5 fill-[var(--text-primary)]" />
             <span>Preview</span>
           </Button>
         </div>
 
         {/* Autosave Indicator */}
-        <div className="flex items-center gap-1.5 text-xs font-medium text-[#6B6570]">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
           {isSaving ? (
             <>
               <Loader2 className="w-3.5 h-3.5 animate-spin text-[#8E4FC0]" />
@@ -208,8 +207,8 @@ export function CenterCanvas({
       </div>
 
       {/* Center Canvas Card per DESIGN_SPEC §3 (ref-14) */}
-      <div className="flex-1 bg-[#F5F5F5] rounded-[20px] border border-[#E6E6E8] p-6 flex items-center justify-center overflow-y-auto">
-        <div className="w-full max-w-[640px] bg-white rounded-[16px] border border-[#E6E6E8] p-8 md:p-12 shadow-xs min-h-[460px] flex flex-col justify-center font-karla">
+      <div className="flex-1 bg-[var(--surface-card)] rounded-[20px] border border-[var(--border)] p-6 flex items-center justify-center overflow-y-auto">
+        <div className="w-full max-w-[640px] bg-[var(--surface-page)] rounded-[16px] border border-[var(--border)] p-8 md:p-12 shadow-xs min-h-[460px] flex flex-col justify-center font-karla">
           {/* If Endings is selected */}
           {isEndingsSelected && (
             <div className="space-y-4">
@@ -226,7 +225,7 @@ export function CenterCanvas({
                   )
                 }
                 placeholder="Thank you title..."
-                className="w-full text-2xl md:text-3xl font-normal text-[#2B2530] border-b border-transparent hover:border-[#D4D2D6] focus:border-[#2B2530] pb-1 focus:outline-hidden"
+                className="w-full text-2xl md:text-3xl font-normal text-[var(--text-primary)] border-b border-transparent hover:border-[var(--border-strong)] focus:border-[var(--primary)] pb-1 focus:outline-hidden"
               />
               <textarea
                 rows={2}
@@ -238,7 +237,7 @@ export function CenterCanvas({
                   )
                 }
                 placeholder="Thank you message..."
-                className="w-full text-base text-[#6B6570] border-b border-transparent hover:border-[#D4D2D6] focus:border-[#2B2530] pb-1 focus:outline-hidden resize-none leading-relaxed"
+                className="w-full text-base text-[var(--text-secondary)] border-b border-transparent hover:border-[var(--border-strong)] focus:border-[var(--primary)] pb-1 focus:outline-hidden resize-none leading-relaxed"
               />
             </div>
           )}
@@ -259,7 +258,7 @@ export function CenterCanvas({
                   )
                 }
                 placeholder="Welcome title..."
-                className="w-full text-2xl md:text-3xl font-normal text-[#2B2530] border-b border-transparent hover:border-[#D4D2D6] focus:border-[#2B2530] pb-1 focus:outline-hidden"
+                className="w-full text-2xl md:text-3xl font-normal text-[var(--text-primary)] border-b border-transparent hover:border-[var(--border-strong)] focus:border-[var(--primary)] pb-1 focus:outline-hidden"
               />
               <textarea
                 rows={2}
@@ -271,7 +270,7 @@ export function CenterCanvas({
                   )
                 }
                 placeholder="Add welcome message or instructions..."
-                className="w-full text-base text-[#6B6570] border-b border-transparent hover:border-[#D4D2D6] focus:border-[#2B2530] pb-1 focus:outline-hidden resize-none leading-relaxed"
+                className="w-full text-base text-[var(--text-secondary)] border-b border-transparent hover:border-[var(--border-strong)] focus:border-[var(--primary)] pb-1 focus:outline-hidden resize-none leading-relaxed"
               />
             </div>
           )}
@@ -283,7 +282,7 @@ export function CenterCanvas({
               <div className="space-y-2">
                 <div className="flex items-start gap-3">
                   {/* Number Badge */}
-                  <div className="mt-1 w-6 h-6 rounded-[5px] bg-[#2B2530] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  <div className="mt-1 w-6 h-6 rounded-[5px] bg-[var(--primary)] text-white flex items-center justify-center text-xs font-bold shrink-0">
                     {question.position + 1}
                     <span className="text-[9px] ml-0.5 opacity-80">→</span>
                   </div>
@@ -297,7 +296,7 @@ export function CenterCanvas({
                         onUpdateQuestion({ title: e.target.value })
                       }
                       placeholder="Type your question here..."
-                      className="w-full text-2xl md:text-[28px] font-normal text-[#2B2530] border-b border-transparent hover:border-[#D4D2D6] focus:border-[#2B2530] pb-1 focus:outline-hidden leading-tight font-karla"
+                      className="w-full text-2xl md:text-[28px] font-normal text-[var(--text-primary)] border-b border-transparent hover:border-[var(--border-strong)] focus:border-[var(--primary)] pb-1 focus:outline-hidden leading-tight font-karla"
                     />
 
                     {/* Inline Editable Description */}
@@ -308,7 +307,7 @@ export function CenterCanvas({
                         onUpdateQuestion({ description: e.target.value })
                       }
                       placeholder="Description (optional)"
-                      className="w-full text-sm text-[#6B6570] italic border-b border-transparent hover:border-[#D4D2D6] focus:border-[#2B2530] pb-0.5 focus:outline-hidden font-karla"
+                      className="w-full text-sm text-[var(--text-secondary)] italic border-b border-transparent hover:border-[var(--border-strong)] focus:border-[var(--primary)] pb-0.5 focus:outline-hidden font-karla"
                     />
                   </div>
                 </div>
@@ -324,7 +323,7 @@ export function CenterCanvas({
           {/* If no question selected */}
           {!isEndingsSelected && !isWelcomeSelected && !question && (
             <div className="text-center py-12 space-y-4">
-              <p className="text-sm text-[#6B6570]">
+              <p className="text-sm text-[var(--text-secondary)]">
                 No question selected. Click &quot;Add content&quot; to add your first question.
               </p>
               <Button variant="primary" size="md" onClick={onOpenAddModal}>

@@ -70,9 +70,9 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
 
   if (isError || !form) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center font-sans">
-        <h2 className="text-xl font-bold text-[#2B2530] mb-2">Form not found</h2>
-        <p className="text-xs text-[#6B6570]">
+      <div className="min-h-screen bg-[var(--surface-page)] flex flex-col items-center justify-center p-6 text-center font-sans">
+        <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Form not found</h2>
+        <p className="text-xs text-[var(--text-secondary)]">
           Could not find form #{formId}. Please return to workspace.
         </p>
       </div>
@@ -256,14 +256,14 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
       />
 
       {/* Mobile / Tablet Segmented Panel Bar (< lg) */}
-      <div className="lg:hidden flex border-b border-[#E6E6E8] bg-[#FAFAFA] px-4 py-2 gap-2 shrink-0">
+      <div className="lg:hidden flex border-b border-[var(--border)] bg-[var(--surface-inner)] px-4 py-2 gap-2 shrink-0">
         <button
           type="button"
           onClick={() => setMobileTab("questions")}
           className={`flex-1 py-1.5 text-xs font-semibold rounded-[6px] transition-colors ${
             mobileTab === "questions"
-              ? "bg-white text-[#2B2530] shadow-xs border border-[#E6E6E8]"
-              : "text-[#6B6570] hover:text-[#2B2530]"
+              ? "bg-[var(--surface-card)] text-[var(--text-primary)] shadow-xs border border-[var(--border)]"
+              : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           }`}
         >
           Questions ({sortedQuestions.length})
@@ -273,8 +273,8 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
           onClick={() => setMobileTab("canvas")}
           className={`flex-1 py-1.5 text-xs font-semibold rounded-[6px] transition-colors ${
             mobileTab === "canvas"
-              ? "bg-white text-[#2B2530] shadow-xs border border-[#E6E6E8]"
-              : "text-[#6B6570] hover:text-[#2B2530]"
+              ? "bg-[var(--surface-card)] text-[var(--text-primary)] shadow-xs border border-[var(--border)]"
+              : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           }`}
         >
           Canvas
@@ -284,8 +284,8 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
           onClick={() => setMobileTab("settings")}
           className={`flex-1 py-1.5 text-xs font-semibold rounded-[6px] transition-colors ${
             mobileTab === "settings"
-              ? "bg-white text-[#2B2530] shadow-xs border border-[#E6E6E8]"
-              : "text-[#6B6570] hover:text-[#2B2530]"
+              ? "bg-[var(--surface-card)] text-[var(--text-primary)] shadow-xs border border-[var(--border)]"
+              : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           }`}
         >
           Settings
@@ -293,7 +293,7 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
       </div>
 
       {/* Main 3-Column Layout (~16px gaps per DESIGN_SPEC §3) */}
-      <div className="flex-1 flex gap-4 p-4 overflow-hidden bg-white">
+      <div className="flex-1 flex gap-4 p-4 overflow-hidden bg-[var(--surface-page)]">
         {/* Left Column (~270px) */}
         <div
           className={`${

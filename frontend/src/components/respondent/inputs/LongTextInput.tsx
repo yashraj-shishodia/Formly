@@ -39,7 +39,12 @@ export function LongTextInput({
           }
         }}
         placeholder={placeholder}
-        className="w-full bg-transparent border-b-2 border-[#D4D2D6] focus:border-[#2B2530] text-lg md:text-xl text-[#2B2530] placeholder-[#A8A3AD] py-2 focus:outline-hidden transition-colors resize-none font-karla leading-relaxed"
+        style={{
+          borderBottomColor: "var(--form-button, #D4D2D6)",
+          color: "var(--form-text, #2B2530)",
+          fontFamily: "var(--form-font, var(--font-karla))",
+        }}
+        className="w-full bg-transparent border-b-2 text-lg md:text-xl placeholder-[#A8A3AD] py-2 focus:outline-hidden transition-colors resize-none leading-relaxed"
       />
       <div className="text-[11px] text-[#A8A3AD]">
         Shift + Enter to make a new line

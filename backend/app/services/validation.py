@@ -2,7 +2,9 @@ import json
 import re
 from typing import Any, Dict, Optional
 
-from app.models import Question, QuestionType
+from sqlalchemy.orm import Session
+
+from app.models import Question, QuestionType, UploadedFile
 from app.schemas import AnswerSubmit
 
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
@@ -34,7 +36,12 @@ def is_answer_empty(answer: Optional[AnswerSubmit]) -> bool:
     return True
 
 
-def validate_answer(question: Question, answer: Optional[AnswerSubmit]) -> Optional[str]:
+def validate_answer(
+    question: Question,
+    answer: Optional[AnswerSubmit],
+    enforce_required: bool = True,
+    db: Optional[Session] = None,
+) -> Optional[str]:
     """
     Validates an answer against question rules and type constraints.
     Returns an error message string if invalid, or None if valid.
@@ -42,10 +49,10 @@ def validate_answer(question: Question, answer: Optional[AnswerSubmit]) -> Optio
     empty = is_answer_empty(answer)
 
     # 1. Check required condition
-    if question.required and empty:
+    if enforce_required and question.required and empty:
         return "This question is required."
 
-    # If optional and empty, it is valid
+    # If empty (and not failing required check above), it is valid
     if empty:
         return None
 
@@ -152,6 +159,37 @@ def validate_answer(question: Question, answer: Optional[AnswerSubmit]) -> Optio
         for label in chosen_labels:
             if label not in valid_labels:
                 return f"'{label}' is not a valid option."
+
+        return None
+
+    elif q_type == QuestionType.FILE_UPLOAD.value:
+        data = None
+        if answer.value_json:
+            try:
+                data = json.loads(answer.value_json)
+            except Exception:
+                return "Invalid file upload answer format."
+        elif answer.value_text:
+            try:
+                data = json.loads(answer.value_text)
+            except Exception:
+                return "Invalid file upload answer format."
+
+        if not isinstance(data, dict) or "file_id" not in data:
+            return "Please upload a valid file."
+
+        file_id = data.get("file_id")
+        if not file_id:
+            return "Please upload a valid file."
+
+        if db is not None:
+            file_record = (
+                db.query(UploadedFile)
+                .filter(UploadedFile.id == file_id, UploadedFile.form_id == question.form_id)
+                .first()
+            )
+            if not file_record:
+                return "Uploaded file not found or does not belong to this form."
 
         return None
 

@@ -42,7 +42,7 @@ export function Modal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed inset-0 bg-[#2B2530]/50 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={onClose}
           />
 
@@ -52,26 +52,26 @@ export function Modal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 10 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className={`relative w-full ${maxWidth} bg-white rounded-[24px] shadow-2xl border border-[#E6E6E8] overflow-hidden z-10 flex flex-col max-h-[90vh]`}
+            className={`relative w-full ${maxWidth} bg-[var(--surface-popover)] rounded-[24px] shadow-2xl border border-[var(--border)] overflow-hidden z-10 flex flex-col max-h-[90vh] text-[var(--text-primary)]`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             {title && (
-              <div className="flex items-start justify-between px-7 pt-6 pb-4 border-b border-[#F0F0F2]">
+              <div className="flex items-start justify-between px-7 pt-6 pb-4 border-b border-[var(--border)]">
                 <div className="space-y-1 pr-4">
-                  <h3 className="text-[20px] font-semibold text-[#2B2530] tracking-tight">
+                  <h3 className="text-[20px] font-semibold text-[var(--text-primary)] tracking-tight">
                     {title}
                   </h3>
                   {description && (
-                    <p className="text-xs text-[#6B6570] leading-relaxed">
+                    <div className="text-xs text-[var(--text-secondary)] leading-relaxed">
                       {description}
-                    </p>
+                    </div>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="p-1.5 rounded-full text-[#6B6570] hover:text-[#2B2530] hover:bg-[#F5F5F5] transition-colors shrink-0"
+                  className="p-1.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-card-hover)] transition-colors shrink-0"
                   aria-label="Close modal"
                 >
                   <X className="w-5 h-5" />
@@ -83,7 +83,7 @@ export function Modal({
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute top-5 right-5 z-20 p-1.5 rounded-full text-[#6B6570] hover:text-[#2B2530] hover:bg-[#F5F5F5] transition-colors"
+                className="absolute top-5 right-5 z-20 p-1.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-card-hover)] transition-colors"
                 aria-label="Close modal"
               >
                 <X className="w-5 h-5" />

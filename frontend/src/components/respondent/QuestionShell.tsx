@@ -38,14 +38,26 @@ export function QuestionShell({
       <div className="space-y-2">
         <div className="flex items-start gap-3.5">
           {/* Number badge per DESIGN_SPEC §2 (ref-09) */}
-          <div className="mt-1 w-7 h-7 rounded-[6px] bg-[#2B2530] text-white flex items-center justify-center text-xs font-bold shrink-0 tracking-tight select-none">
+          <div
+            className="mt-1 w-7 h-7 rounded-[6px] flex items-center justify-center text-xs font-bold shrink-0 tracking-tight select-none shadow-2xs"
+            style={{
+              backgroundColor: "var(--form-button, #2B2530)",
+              color: "var(--form-button-text, #FFFFFF)",
+            }}
+          >
             {number}
             <span className="text-[10px] ml-0.5 opacity-80">→</span>
           </div>
 
           <div className="flex-1 space-y-1.5">
             {/* Title with optional required asterisk */}
-            <h2 className="text-2xl md:text-[30px] font-normal text-[#2B2530] leading-snug tracking-tight font-karla">
+            <h2
+              className="text-2xl md:text-[30px] font-normal leading-snug tracking-tight"
+              style={{
+                color: "var(--form-text, #2B2530)",
+                fontFamily: "var(--form-font, var(--font-karla))",
+              }}
+            >
               {title}
               {required && (
                 <span className="text-[#D9383A] ml-1 font-semibold" title="Required">
@@ -56,7 +68,14 @@ export function QuestionShell({
 
             {/* Optional Description */}
             {description && (
-              <p className="text-sm md:text-base text-[#6B6570] leading-relaxed font-karla">
+              <p
+                className="text-sm md:text-base leading-relaxed"
+                style={{
+                  color: "var(--form-text, #2B2530)",
+                  opacity: 0.75,
+                  fontFamily: "var(--form-font, var(--font-karla))",
+                }}
+              >
                 {description}
               </p>
             )}
@@ -97,14 +116,21 @@ export function QuestionShell({
           size="lg"
           onClick={onContinue}
           isLoading={isSubmitting}
-          className="text-base font-medium px-6 py-3 rounded-[8px] bg-[#2B2530] hover:bg-[#3A3340] text-white shadow-xs"
+          style={{
+            backgroundColor: "var(--form-button, #2B2530)",
+            color: "var(--form-button-text, #FFFFFF)",
+          }}
+          className="text-base font-medium px-6 py-3 rounded-[8px] hover:opacity-90 transition-opacity shadow-xs border-0"
         >
           {customButtonText || (isLastQuestion ? "Submit" : "Continue")}
         </Button>
 
-        <span className="hidden sm:inline-flex items-center gap-1 text-xs text-[#6B6570] font-normal select-none">
-          press <strong className="font-semibold text-[#2B2530]">Enter</strong>
-          <CornerDownLeft className="w-3.5 h-3.5 text-[#6B6570]" />
+        <span
+          className="hidden sm:inline-flex items-center gap-1 text-xs font-normal select-none"
+          style={{ color: "var(--form-text, #2B2530)", opacity: 0.7 }}
+        >
+          press <strong className="font-semibold">Enter</strong>
+          <CornerDownLeft className="w-3.5 h-3.5 opacity-80" />
         </span>
       </div>
     </div>

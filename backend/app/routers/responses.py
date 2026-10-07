@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import get_current_user
-from app.models import Answer, Form, Question, Response, User
+from app.models import Answer, Form, Question, Response, UploadedFile, User
 from app.schemas import (
     FormSummary,
     ResponseDetail,
@@ -17,11 +17,19 @@ from app.schemas import (
     ResponseStatus,
 )
 from app.services.summary import calculate_form_summary
+from app.services.uploads import delete_file_from_disk
 
 router = APIRouter(tags=["Responses & Analytics"])
 
 
 def resolve_answer_value(answer: Answer) -> Any:
+    if answer.value_json is not None:
+        try:
+            parsed = json.loads(answer.value_json)
+            if isinstance(parsed, dict) and "file_id" in parsed:
+                return parsed
+        except Exception:
+            pass
     if answer.value_text is not None:
         return answer.value_text
     if answer.value_number is not None:
@@ -124,8 +132,33 @@ def delete_response(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Response with id {response_id} not found",
         )
+
+    # Find and delete any uploaded files tied to this response
+    files_to_remove = []
+    for ans in response.answers:
+        if ans.value_json:
+            try:
+                data = json.loads(ans.value_json)
+                if isinstance(data, dict) and "file_id" in data:
+                    f_rec = (
+                        db.query(UploadedFile)
+                        .filter(UploadedFile.id == data["file_id"])
+                        .first()
+                    )
+                    if f_rec:
+                        files_to_remove.append((f_rec, f_rec.stored_name))
+            except Exception:
+                pass
+
+    for f_rec, _ in files_to_remove:
+        db.delete(f_rec)
+
     db.delete(response)
     db.commit()
+
+    for _, stored_name in files_to_remove:
+        delete_file_from_disk(stored_name)
+
     return {"message": f"Response {response_id} deleted successfully"}
 
 
@@ -192,7 +225,9 @@ def export_responses_csv(
         ]
         for q in questions:
             val = ans_map.get(q.id, "")
-            if isinstance(val, list):
+            if isinstance(val, dict) and "original_name" in val:
+                val = val["original_name"]
+            elif isinstance(val, list):
                 val = ", ".join(str(x) for x in val)
             row.append(str(val) if val is not None else "")
         writer.writerow(row)

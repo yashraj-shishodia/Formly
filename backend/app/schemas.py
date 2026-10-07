@@ -3,7 +3,7 @@ import json
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from app.models import FormStatus, QuestionType, ResponseStatus
+from app.models import FormStatus, LogicOperator, QuestionType, ResponseStatus
 
 
 # Base configuration for Pydantic v2
@@ -72,6 +72,35 @@ class QuestionOptionResponse(QuestionOptionBase):
 
 
 # ==========================================
+# Logic Rule Schemas
+# ==========================================
+class LogicRuleBase(BaseSchema):
+    operator: LogicOperator
+    value: str
+    target_question_id: Optional[int] = None
+    position: int = 0
+
+
+class LogicRuleCreate(BaseSchema):
+    operator: LogicOperator
+    value: str
+    target_question_id: Optional[int] = None
+    position: Optional[int] = 0
+
+
+class LogicRuleUpdate(BaseSchema):
+    operator: Optional[LogicOperator] = None
+    value: Optional[str] = None
+    target_question_id: Optional[int] = None
+    position: Optional[int] = None
+
+
+class LogicRuleResponse(LogicRuleBase):
+    id: int
+    question_id: int
+
+
+# ==========================================
 # Question Schemas
 # ==========================================
 class QuestionBase(BaseSchema):
@@ -94,6 +123,7 @@ class QuestionCreate(BaseSchema):
 
 
 class QuestionUpdate(BaseSchema):
+    type: Optional[QuestionType] = None
     title: Optional[str] = None
     description: Optional[str] = None
     required: Optional[bool] = None
@@ -105,6 +135,7 @@ class QuestionResponse(QuestionBase):
     id: int
     form_id: int
     options: List[QuestionOptionResponse] = []
+    logic_rules: List[LogicRuleResponse] = []
     created_at: datetime
     updated_at: datetime
 
@@ -174,6 +205,7 @@ class PublicQuestion(BaseSchema):
     position: int
     settings_json: Optional[str] = None
     options: List[QuestionOptionResponse] = []
+    logic_rules: List[LogicRuleResponse] = []
 
 
 class PublicForm(BaseSchema):
@@ -201,8 +233,25 @@ class AnswerSubmit(BaseSchema):
 
 
 class ResponseSubmit(BaseSchema):
+    response_id: Optional[int] = None
     answers: List[AnswerSubmit] = []
     started_at: Optional[datetime] = None
+
+
+class ResponseProgressSubmit(BaseSchema):
+    response_id: Optional[int] = None
+    started_at: Optional[datetime] = None
+    answers: List[AnswerSubmit] = []
+
+
+class ResponseProgressResponse(BaseSchema):
+    response_id: int
+
+
+class UploadedFileResponse(BaseSchema):
+    file_id: int
+    original_name: str
+    size_bytes: int
 
 
 class AnswerResponse(BaseSchema):

@@ -63,22 +63,34 @@ export function RatingInput({
               onClick={() => handleSelect(num)}
               onMouseEnter={() => setHoverRating(num)}
               onMouseLeave={() => setHoverRating(null)}
+              style={
+                isDirectlySelected
+                  ? { borderColor: "var(--form-button, #2B2530)" }
+                  : {}
+              }
               className={`group flex flex-col items-center justify-center w-14 h-16 rounded-[8px] transition-all cursor-pointer ${
                 isDirectlySelected
-                  ? "bg-white border-2 border-[#2B2530] shadow-xs"
+                  ? "bg-white border-2 shadow-xs"
                   : isHovered
                   ? "bg-[#D8D8DC] border-2 border-transparent"
                   : "bg-[#E0E0E2] hover:bg-[#D4D2D6] border-2 border-transparent"
               }`}
             >
               <Star
-                className={`w-6 h-6 transition-colors ${
+                style={
                   isHovered || isSelected
-                    ? "fill-[#2B2530] text-[#2B2530]"
-                    : "text-[#8E8A93]"
-                }`}
+                    ? {
+                        fill: "var(--form-button, #2B2530)",
+                        color: "var(--form-button, #2B2530)",
+                      }
+                    : { color: "#8E8A93" }
+                }
+                className="w-6 h-6 transition-colors"
               />
-              <span className="text-xs font-bold text-[#2B2530] mt-1 select-none">
+              <span
+                style={{ color: "var(--form-text, #2B2530)" }}
+                className="text-xs font-bold mt-1 select-none"
+              >
                 {num}
               </span>
             </button>
@@ -86,7 +98,14 @@ export function RatingInput({
         })}
       </div>
 
-      <div className="flex items-center justify-between max-w-sm text-xs text-[#6B6570] font-karla">
+      <div
+        style={{
+          color: "var(--form-text, #2B2530)",
+          opacity: 0.7,
+          fontFamily: "var(--form-font, var(--font-karla))",
+        }}
+        className="flex items-center justify-between max-w-sm text-xs"
+      >
         <span>1 = Lowest</span>
         <span>{maxRating} = Highest</span>
       </div>

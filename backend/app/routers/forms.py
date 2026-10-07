@@ -5,7 +5,17 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import get_current_user
-from app.models import Form, FormStatus, Question, QuestionOption, Response, User, utc_now
+from app.models import (
+    Form,
+    FormStatus,
+    Question,
+    QuestionLogicRule,
+    QuestionOption,
+    Response,
+    ResponseStatus,
+    User,
+    utc_now,
+)
 from app.schemas import (
     EndingScreenConfig,
     FormCreate,
@@ -16,6 +26,7 @@ from app.schemas import (
     WelcomeScreenConfig,
 )
 from app.services.slug import generate_unique_slug
+from app.services.uploads import delete_file_from_disk
 
 router = APIRouter(prefix="/api/forms", tags=["Forms"])
 
@@ -33,7 +44,14 @@ def parse_json_model(json_str: Optional[str], model_cls):
 
 
 def build_form_detail(form: Form, db: Session) -> FormDetail:
-    resp_count = db.query(Response).filter(Response.form_id == form.id).count()
+    resp_count = (
+        db.query(Response)
+        .filter(
+            Response.form_id == form.id,
+            Response.status == ResponseStatus.COMPLETED.value,
+        )
+        .count()
+    )
 
     theme = parse_json_model(form.theme_json, ThemeConfig) or ThemeConfig()
     welcome = parse_json_model(form.welcome_screen_json, WelcomeScreenConfig) or WelcomeScreenConfig()
@@ -77,7 +95,14 @@ def list_forms(
 
     result = []
     for f in forms:
-        resp_count = db.query(Response).filter(Response.form_id == f.id).count()
+        resp_count = (
+            db.query(Response)
+            .filter(
+                Response.form_id == f.id,
+                Response.status == ResponseStatus.COMPLETED.value,
+            )
+            .count()
+        )
         result.append(
             FormListItem(
                 id=f.id,
@@ -181,8 +206,11 @@ def delete_form(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Form with id {form_id} not found",
         )
+    files_to_delete = [f.stored_name for f in form.uploaded_files]
     db.delete(form)
     db.commit()
+    for stored_name in files_to_delete:
+        delete_file_from_disk(stored_name)
     return {"message": f"Form {form_id} deleted successfully"}
 
 
@@ -218,6 +246,7 @@ def duplicate_form(
     db.refresh(new_form)
 
     # Deep copy questions and options
+    q_id_map = {}
     for q in original.questions:
         new_q = Question(
             form_id=new_form.id,
@@ -231,6 +260,7 @@ def duplicate_form(
         db.add(new_q)
         db.commit()
         db.refresh(new_q)
+        q_id_map[q.id] = new_q.id
 
         for opt in q.options:
             new_opt = QuestionOption(
@@ -239,6 +269,24 @@ def duplicate_form(
                 position=opt.position,
             )
             db.add(new_opt)
+
+    # Deep copy logic rules with remapped question ids
+    for q in original.questions:
+        new_q_id = q_id_map.get(q.id)
+        if not new_q_id:
+            continue
+        for rule in q.logic_rules:
+            new_target_id = None
+            if rule.target_question_id is not None:
+                new_target_id = q_id_map.get(rule.target_question_id)
+            new_rule = QuestionLogicRule(
+                question_id=new_q_id,
+                operator=rule.operator,
+                value=rule.value,
+                target_question_id=new_target_id,
+                position=rule.position,
+            )
+            db.add(new_rule)
 
     db.commit()
     db.refresh(new_form)

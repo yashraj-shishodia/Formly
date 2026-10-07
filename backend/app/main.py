@@ -5,8 +5,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, SessionLocal, engine
-import app.models  # Register models with Base
-from app.routers import forms, public, questions, responses
+import app.models  # noqa: F401
+from app.routers import files, forms, public, questions, responses
 from app.seed import seed_database
 
 load_dotenv()
@@ -56,6 +56,7 @@ app.include_router(forms.router)
 app.include_router(questions.router)
 app.include_router(public.router)
 app.include_router(responses.router)
+app.include_router(files.router)
 
 
 @app.get("/api/health")

@@ -5,15 +5,32 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  Eye,
   X,
   Calendar,
-  CheckCircle2,
-  Clock,
+  Download,
 } from "lucide-react";
 import { useFormResponses, useDeleteResponse } from "@/hooks/useForms";
 import { Question, ResponseListItem } from "@/lib/types";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
+
+function parseFileAnswer(val: unknown): { file_id: number; original_name: string } | null {
+  if (!val) return null;
+  if (typeof val === "object" && "file_id" in val && "original_name" in val) {
+    return val as { file_id: number; original_name: string };
+  }
+  if (typeof val === "string") {
+    try {
+      const parsed = JSON.parse(val);
+      if (parsed && typeof parsed === "object" && "file_id" in parsed && "original_name" in parsed) {
+        return parsed;
+      }
+    } catch {
+      // not JSON
+    }
+  }
+  return null;
+}
 
 interface ResponsesViewProps {
   formId: number;
@@ -57,7 +74,7 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
 
   if (isLoading) {
     return (
-      <div className="py-16 text-center text-xs text-[#6B6570]">
+      <div className="py-16 text-center text-xs text-[var(--text-secondary)]">
         Loading responses table...
       </div>
     );
@@ -76,13 +93,13 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
   return (
     <div className="space-y-4 max-w-6xl mx-auto pb-16">
       {/* Table Container */}
-      <div className="bg-white rounded-[16px] border border-[#E6E6E8] shadow-2xs overflow-hidden">
+      <div className="bg-[var(--surface-card)] rounded-[16px] border border-[var(--border)] shadow-2xs overflow-hidden">
         {/* Table Header Info */}
-        <div className="px-6 py-4 border-b border-[#F0EFF2] flex items-center justify-between">
-          <span className="text-sm font-semibold text-[#2B2530]">
+        <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
+          <span className="text-sm font-semibold text-[var(--text-primary)]">
             All Responses ({responseData.total})
           </span>
-          <span className="text-xs text-[#6B6570]">
+          <span className="text-xs text-[var(--text-secondary)]">
             Showing page {page} of {totalPages}
           </span>
         </div>
@@ -91,7 +108,7 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-[#FAFAFA] border-b border-[#E6E6E8] text-[#6B6570] font-semibold uppercase tracking-wider text-[11px]">
+              <tr className="bg-[var(--surface-inner)] border-b border-[var(--border)] text-[var(--text-secondary)] font-semibold uppercase tracking-wider text-[11px]">
                 <th className="py-3 px-4 w-16">#</th>
                 <th className="py-3 px-4 w-28">Status</th>
                 <th className="py-3 px-4 w-44">Submitted At</th>
@@ -104,26 +121,26 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-[#F0EFF2] text-[#2B2530]">
+            <tbody className="divide-y divide-[var(--border)] text-[var(--text-primary)]">
               {responseData.items.length === 0 ? (
                 <tr>
                   <td
                     colSpan={4 + Math.min(4, sortedQuestions.length)}
-                    className="py-12 text-center text-[#A8A3AD]"
+                    className="py-12 text-center text-[var(--text-muted)]"
                   >
                     No responses collected yet.
                   </td>
                 </tr>
               ) : (
-                responseData.items.map((r, idx) => {
+                responseData.items.map((r) => {
                   const isCompleted = r.status === "completed";
                   return (
                     <tr
                       key={r.id}
                       onClick={() => setSelectedResponse(r)}
-                      className="hover:bg-[#F9F9FA] cursor-pointer transition-colors group"
+                      className="hover:bg-[var(--surface-card-hover)] cursor-pointer transition-colors group"
                     >
-                      <td className="py-3 px-4 font-mono text-[#6B6570]">
+                      <td className="py-3 px-4 font-mono text-[var(--text-secondary)]">
                         #{r.id}
                       </td>
 
@@ -133,20 +150,23 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
                             Completed
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-600 border border-amber-500/20">
                             Partial
                           </span>
                         )}
                       </td>
 
-                      <td className="py-3 px-4 text-[#6B6570]">
+                      <td className="py-3 px-4 text-[var(--text-secondary)]">
                         {formatDate(r.submitted_at)}
                       </td>
 
                       {sortedQuestions.slice(0, 4).map((q) => {
                         const ans = r.answers[q.id];
+                        const fileInfo = parseFileAnswer(ans);
                         let displayVal = "—";
-                        if (ans !== undefined && ans !== null) {
+                        if (fileInfo) {
+                          displayVal = fileInfo.original_name;
+                        } else if (ans !== undefined && ans !== null) {
                           if (Array.isArray(ans)) {
                             displayVal = ans.join(", ");
                           } else if (typeof ans === "boolean") {
@@ -159,10 +179,24 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
                         return (
                           <td
                             key={q.id}
-                            className="py-3 px-4 max-w-[200px] truncate text-[#2B2530]"
+                            className="py-3 px-4 max-w-[200px] truncate text-[var(--text-primary)]"
                             title={displayVal}
                           >
-                            {displayVal}
+                            {fileInfo ? (
+                              <a
+                                href={api.getFileDownloadUrl(fileInfo.file_id)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-[var(--primary)] hover:underline font-medium max-w-full truncate"
+                                title={`Download ${fileInfo.original_name}`}
+                              >
+                                <Download className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{fileInfo.original_name}</span>
+                              </a>
+                            ) : (
+                              displayVal
+                            )}
                           </td>
                         );
                       })}
@@ -171,7 +205,7 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
                         <button
                           type="button"
                           onClick={(e) => handleDelete(e, r.id)}
-                          className="p-1 rounded text-[#A8A3AD] hover:text-[#D9383A] hover:bg-red-50 transition-colors"
+                          className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--accent-error)] hover:bg-red-500/10 transition-colors"
                           title="Delete response"
                           aria-label={`Delete response #${r.id}`}
                         >
@@ -188,8 +222,8 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
 
         {/* Pagination Footer */}
         {totalPages > 1 && (
-          <div className="px-6 py-3 border-t border-[#F0EFF2] flex items-center justify-between bg-[#FAFAFA]">
-            <span className="text-xs text-[#6B6570]">
+          <div className="px-6 py-3 border-t border-[var(--border)] flex items-center justify-between bg-[var(--surface-inner)]">
+            <span className="text-xs text-[var(--text-secondary)]">
               Page {page} of {totalPages}
             </span>
 
@@ -222,15 +256,15 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
 
       {/* Answer Detail Slide-over Modal / Drawer */}
       {selectedResponse && (
-        <div className="fixed inset-0 z-50 bg-[#2B2530]/40 backdrop-blur-xs flex justify-end animate-in fade-in-50 duration-150">
-          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col p-6 overflow-y-auto font-sans animate-in slide-in-from-right duration-200">
+        <div className="fixed inset-0 z-50 bg-[var(--primary)]/40 backdrop-blur-xs flex justify-end animate-in fade-in-50 duration-150">
+          <div className="w-full max-w-lg bg-[var(--surface-page)] h-full shadow-2xl flex flex-col p-6 overflow-y-auto font-sans animate-in slide-in-from-right duration-200">
             {/* Header */}
-            <div className="flex items-start justify-between border-b border-[#F0EFF2] pb-4">
+            <div className="flex items-start justify-between border-b border-[var(--border)] pb-4">
               <div>
-                <h3 className="text-lg font-bold text-[#2B2530]">
+                <h3 className="text-lg font-bold text-[var(--text-primary)]">
                   Response #{selectedResponse.id}
                 </h3>
-                <div className="flex items-center gap-3 text-xs text-[#6B6570] mt-1">
+                <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)] mt-1">
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" />
                     {formatDate(selectedResponse.submitted_at)}
@@ -239,8 +273,8 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
                   <span
                     className={`capitalize font-semibold ${
                       selectedResponse.status === "completed"
-                        ? "text-emerald-700"
-                        : "text-amber-700"
+                        ? "text-[#2F7D69]"
+                        : "text-amber-600"
                     }`}
                   >
                     ● {selectedResponse.status}
@@ -251,7 +285,7 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
               <button
                 type="button"
                 onClick={() => setSelectedResponse(null)}
-                className="p-1.5 rounded-full hover:bg-[#F5F5F5] text-[#6B6570] hover:text-[#2B2530] transition-colors"
+                className="p-1.5 rounded-full hover:bg-[var(--surface-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 aria-label="Close response details"
               >
                 <X className="w-5 h-5" />
@@ -262,10 +296,13 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
             <div className="flex-1 py-6 space-y-6">
               {sortedQuestions.map((q, idx) => {
                 const ans = selectedResponse.answers[q.id];
+                const fileInfo = parseFileAnswer(ans);
                 let displayVal = "No answer provided";
                 const hasAnswer = ans !== undefined && ans !== null && ans !== "";
 
-                if (hasAnswer) {
+                if (fileInfo) {
+                  displayVal = fileInfo.original_name;
+                } else if (hasAnswer) {
                   if (Array.isArray(ans)) {
                     displayVal = ans.join(", ");
                   } else if (typeof ans === "boolean") {
@@ -278,25 +315,37 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
                 return (
                   <div
                     key={q.id}
-                    className="space-y-1.5 p-3.5 rounded-[12px] bg-[#FAFAFA] border border-[#E6E6E8]"
+                    className="space-y-1.5 p-3.5 rounded-[12px] bg-[var(--surface-inner)] border border-[var(--border)]"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-[4px] bg-[#2B2530] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                      <span className="w-5 h-5 rounded-[4px] bg-[var(--primary)] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
                         {idx + 1}
                       </span>
-                      <span className="text-xs font-semibold text-[#2B2530]">
+                      <span className="text-xs font-semibold text-[var(--text-primary)]">
                         {q.title}
                       </span>
                     </div>
 
                     <div className="pl-7">
-                      <p
-                        className={`text-sm font-medium ${
-                          hasAnswer ? "text-[#2B2530]" : "text-[#A8A3AD] italic"
-                        }`}
-                      >
-                        {displayVal}
-                      </p>
+                      {fileInfo ? (
+                        <a
+                          href={api.getFileDownloadUrl(fileInfo.file_id)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[var(--surface-card)] border border-[var(--border)] text-xs font-semibold text-[var(--primary)] hover:border-[var(--primary)] transition-colors shadow-2xs"
+                        >
+                          <Download className="w-3.5 h-3.5 shrink-0" />
+                          <span>Download {fileInfo.original_name}</span>
+                        </a>
+                      ) : (
+                        <p
+                          className={`text-sm font-medium ${
+                            hasAnswer ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] italic"
+                          }`}
+                        >
+                          {displayVal}
+                        </p>
+                      )}
                     </div>
                   </div>
                 );
@@ -304,7 +353,7 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
             </div>
 
             {/* Footer */}
-            <div className="pt-4 border-t border-[#F0EFF2] flex justify-end">
+            <div className="pt-4 border-t border-[var(--border)] flex justify-end">
               <Button
                 variant="secondary"
                 size="md"

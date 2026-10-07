@@ -12,6 +12,8 @@ import {
   formatAnswerPayload,
   RawAnswerValue,
 } from "@/lib/validators";
+import { resolveThemeFontCss } from "@/lib/tokens";
+import { findMatchingRule } from "@/lib/logic";
 import { QuestionShell } from "./QuestionShell";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { ThankYouScreen } from "./ThankYouScreen";
@@ -23,6 +25,7 @@ import { EmailInput } from "./inputs/EmailInput";
 import { NumberInput } from "./inputs/NumberInput";
 import { RatingInput } from "./inputs/RatingInput";
 import { DropdownInput } from "./inputs/DropdownInput";
+import { FileUploadInput } from "./inputs/FileUploadInput";
 
 interface FormRunnerProps {
   form: PublicForm | FormDetail;
@@ -46,11 +49,21 @@ export function FormRunner({
     hasWelcomeScreen ? "welcome" : "question"
   );
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [history, setHistory] = useState<number[]>([0]);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [answers, setAnswers] = useState<Record<number, RawAnswerValue>>({});
   const [errors, setErrors] = useState<Record<number, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const startTimeRef = useRef<number>(Date.now());
+  const [responseId, setResponseId] = useState<number | null>(null);
+  const responseIdRef = useRef<number | null>(null);
+  const lastSavedAnswersRef = useRef<Record<number, string>>({});
+  const startTimeRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (startTimeRef.current === null) {
+      startTimeRef.current = Date.now();
+    }
+  }, []);
 
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
@@ -58,6 +71,18 @@ export function FormRunner({
   // Active answer value
   const currentAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
   const currentError = currentQuestion ? errors[currentQuestion.id] : null;
+
+  // Evaluate matching rule for current question & answer
+  const matchingRule = useMemo(() => {
+    if (!currentQuestion) return null;
+    return findMatchingRule(currentQuestion, currentAnswer);
+  }, [currentQuestion, currentAnswer]);
+
+  const isJumpToEnd =
+    matchingRule !== null &&
+    (matchingRule.target_question_id === null || matchingRule.target_question_id === undefined);
+
+  const isSubmitStep = isLastQuestion || isJumpToEnd;
 
   // Update answer for current question
   const handleAnswerChange = useCallback(
@@ -76,7 +101,7 @@ export function FormRunner({
     [currentQuestion, errors]
   );
 
-  // Navigate forward
+  // Navigate forward with logic branching
   const goNext = useCallback(async () => {
     if (!currentQuestion) return;
 
@@ -87,16 +112,79 @@ export function FormRunner({
       return;
     }
 
-    if (!isLastQuestion) {
+    // Track response progress in live mode
+    if (mode === "live" && form.slug) {
+      const hasAnswer =
+        currentAnswer !== undefined &&
+        currentAnswer !== null &&
+        currentAnswer !== "" &&
+        !(Array.isArray(currentAnswer) && currentAnswer.length === 0);
+
+      const currentSerialized = JSON.stringify(currentAnswer ?? null);
+      const isChanged =
+        lastSavedAnswersRef.current[currentQuestion.id] !== currentSerialized;
+
+      if (hasAnswer && isChanged) {
+        lastSavedAnswersRef.current[currentQuestion.id] = currentSerialized;
+        const answerPayload = formatAnswerPayload(
+          currentQuestion,
+          currentAnswer
+        );
+        api
+          .saveResponseProgress(form.slug, {
+            response_id: responseIdRef.current ?? undefined,
+            started_at: startTimeRef.current
+              ? new Date(startTimeRef.current).toISOString()
+              : undefined,
+            answers: [answerPayload],
+          })
+          .then((res) => {
+            if (res?.response_id) {
+              responseIdRef.current = res.response_id;
+              setResponseId(res.response_id);
+            }
+          })
+          .catch(() => {
+            // Progress-call failures are silent (no toast, never block navigation)
+          });
+      }
+    }
+
+    // Determine next question via logic rules or sequential progression
+    const rule = findMatchingRule(currentQuestion, currentAnswer);
+    let targetIdx: number | null = null;
+    let jumpToEnd = false;
+
+    if (rule) {
+      if (rule.target_question_id === null || rule.target_question_id === undefined) {
+        jumpToEnd = true;
+      } else {
+        const found = questions.findIndex((q) => q.id === rule.target_question_id);
+        if (found !== -1 && found > currentIndex) {
+          targetIdx = found;
+        }
+      }
+    }
+
+    if (!jumpToEnd && targetIdx === null && !isLastQuestion) {
+      targetIdx = currentIndex + 1;
+    }
+
+    // Advance to next question along the logic path
+    if (targetIdx !== null) {
       setDirection(1);
-      setCurrentIndex((i) => i + 1);
+      setHistory((prev) => [...prev, targetIdx!]);
+      setCurrentIndex(targetIdx);
       return;
     }
 
-    // On last question: Run full validation on ALL questions
+    // Reached submit point (jumpToEnd or isLastQuestion): validate only visited path
+    const visitedIndices = Array.from(new Set([...history, currentIndex]));
+    const visitedQuestions = visitedIndices.map((i) => questions[i]);
+
     const validationErrors: Record<number, string> = {};
-    for (let i = 0; i < questions.length; i++) {
-      const q = questions[i];
+    for (let i = 0; i < visitedQuestions.length; i++) {
+      const q = visitedQuestions[i];
       const qErr = validateQuestionAnswer(q, answers[q.id]);
       if (qErr) {
         validationErrors[q.id] = qErr;
@@ -105,7 +193,7 @@ export function FormRunner({
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      // Navigate to the first invalid question
+      // Navigate to the first invalid visited question
       const firstInvalidIndex = questions.findIndex(
         (q) => !!validationErrors[q.id]
       );
@@ -130,12 +218,16 @@ export function FormRunner({
 
     setIsSubmitting(true);
     try {
-      const payloadAnswers = questions.map((q) =>
+      const payloadAnswers = visitedQuestions.map((q) =>
         formatAnswerPayload(q, answers[q.id])
       );
 
       await api.submitPublicResponse(form.slug, {
+        response_id: responseIdRef.current ?? responseId ?? undefined,
         answers: payloadAnswers,
+        started_at: startTimeRef.current
+          ? new Date(startTimeRef.current).toISOString()
+          : undefined,
       });
 
       setScreen("thankyou");
@@ -170,20 +262,25 @@ export function FormRunner({
     questions,
     answers,
     currentIndex,
+    history,
     mode,
     form.slug,
+    responseId,
   ]);
 
-  // Navigate backward
+  // Navigate backward using history stack
   const goPrev = useCallback(() => {
-    if (currentIndex > 0) {
+    if (history.length > 1) {
+      const nextHistory = history.slice(0, -1);
+      const prevIndex = nextHistory[nextHistory.length - 1];
+      setHistory(nextHistory);
       setDirection(-1);
-      setCurrentIndex((i) => i - 1);
+      setCurrentIndex(prevIndex);
     } else if (hasWelcomeScreen) {
       setDirection(-1);
       setScreen("welcome");
     }
-  }, [currentIndex, hasWelcomeScreen]);
+  }, [history, hasWelcomeScreen]);
 
   // Global Keyboard listener for arrow up/down
   useEffect(() => {
@@ -230,11 +327,15 @@ export function FormRunner({
     }),
   };
 
-  // Progress percentage
+  // Progress percentage based on visited path
   const progressPercent = useMemo(() => {
     if (questions.length === 0) return 0;
-    return Math.round(((currentIndex + 1) / questions.length) * 100);
-  }, [currentIndex, questions.length]);
+    if (screen === "thankyou" || isSubmitStep) return 100;
+    return Math.min(
+      95,
+      Math.round((history.length / Math.max(questions.length, history.length)) * 100)
+    );
+  }, [history.length, isSubmitStep, questions.length, screen]);
 
   // Render question input component based on type
   const renderInput = () => {
@@ -360,6 +461,16 @@ export function FormRunner({
           />
         );
 
+      case "file_upload":
+        return (
+          <FileUploadInput
+            value={currentAnswer}
+            onChange={handleAnswerChange}
+            onSubmit={goNext}
+            slug={form.slug || ""}
+          />
+        );
+
       default:
         return (
           <ShortTextInput
@@ -371,16 +482,37 @@ export function FormRunner({
     }
   };
 
+  const theme = form.theme;
+  const runnerStyle = {
+    "--form-bg": theme?.background_color || "#EAEAEC",
+    "--form-text": theme?.text_color || "#2B2530",
+    "--form-button": theme?.button_color || "#2B2530",
+    "--form-button-text": theme?.button_text_color || "#FFFFFF",
+    "--form-font": resolveThemeFontCss(theme?.font),
+  } as React.CSSProperties;
+
   return (
-    <div className="min-h-screen bg-white flex flex-col p-4 md:p-7 select-none relative font-karla">
+    <div
+      style={runnerStyle}
+      className="min-h-screen bg-white flex flex-col p-4 md:p-7 select-none relative font-[family-name:var(--form-font,var(--font-karla))]"
+    >
       {/* Top Header per DESIGN_SPEC §2 */}
       <header className="h-10 px-3 flex items-center justify-between mb-2">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="relative w-6 h-6 flex items-center justify-center">
-            <div className="absolute w-3 h-5 bg-[#2B2530] rounded-[2.5px] -left-0.5" />
-            <div className="absolute w-3 h-3 bg-[#2B2530]/80 rounded-[2.5px] -right-0.5 top-2" />
+            <div
+              className="absolute w-3 h-5 rounded-[2.5px] -left-0.5"
+              style={{ backgroundColor: "var(--form-text, #2B2530)" }}
+            />
+            <div
+              className="absolute w-3 h-3 opacity-80 rounded-[2.5px] -right-0.5 top-2"
+              style={{ backgroundColor: "var(--form-text, #2B2530)" }}
+            />
           </div>
-          <span className="font-bold text-base tracking-tight text-[#2B2530]">
+          <span
+            className="font-bold text-base tracking-tight"
+            style={{ color: "var(--form-text, #2B2530)" }}
+          >
             Formly
           </span>
         </Link>
@@ -403,13 +535,20 @@ export function FormRunner({
         )}
       </header>
 
-      {/* ONE Large Inset Rounded Canvas (#EAEAEC) per DESIGN_SPEC §2 */}
-      <div className="flex-1 bg-[#EAEAEC] rounded-[20px] relative overflow-hidden flex flex-col justify-between p-6 md:p-12 shadow-inner">
+      {/* ONE Large Inset Rounded Canvas per DESIGN_SPEC §2 */}
+      <div
+        className="flex-1 rounded-[20px] relative overflow-hidden flex flex-col justify-between p-6 md:p-12 shadow-inner transition-colors duration-200"
+        style={{
+          backgroundColor: "var(--form-bg, #EAEAEC)",
+          color: "var(--form-text, #2B2530)",
+        }}
+      >
         {/* Progress Bar at the top of canvas */}
         {screen === "question" && questions.length > 0 && (
-          <div className="absolute top-0 left-0 w-full h-1 bg-[#D4D2D6]">
+          <div className="absolute top-0 left-0 w-full h-1 bg-[#D4D2D6]/40">
             <motion.div
-              className="h-full bg-[#2B2530]"
+              className="h-full"
+              style={{ backgroundColor: "var(--form-button, #2B2530)" }}
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.3 }}
@@ -419,7 +558,10 @@ export function FormRunner({
 
         {/* Top questions counter */}
         {screen === "question" && questions.length > 0 && (
-          <div className="text-xs font-medium text-[#6B6570] select-none">
+          <div
+            className="text-xs font-medium select-none"
+            style={{ color: "var(--form-text, #2B2530)", opacity: 0.75 }}
+          >
             {currentIndex + 1} of {questions.length} answered
           </div>
         )}
@@ -467,7 +609,7 @@ export function FormRunner({
                   required={currentQuestion.required}
                   error={currentError}
                   onContinue={goNext}
-                  isLastQuestion={isLastQuestion}
+                  isLastQuestion={isSubmitStep}
                   isSubmitting={isSubmitting}
                 >
                   {renderInput()}
@@ -502,7 +644,7 @@ export function FormRunner({
             <button
               type="button"
               onClick={goPrev}
-              disabled={currentIndex === 0 && !hasWelcomeScreen}
+              disabled={history.length <= 1 && !hasWelcomeScreen}
               className="w-10 h-10 flex items-center justify-center text-[#2B2530] hover:bg-[#F5F5F5] disabled:opacity-30 disabled:hover:bg-white transition-colors border-r border-[#E6E6E8] cursor-pointer disabled:cursor-not-allowed"
               title="Previous question (↑)"
               aria-label="Previous question"

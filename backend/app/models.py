@@ -40,6 +40,14 @@ class QuestionType(str, enum.Enum):
     NUMBER = "number"
     YES_NO = "yes_no"
     RATING = "rating"
+    FILE_UPLOAD = "file_upload"
+
+
+class LogicOperator(str, enum.Enum):
+    EQUALS = "equals"
+    NOT_EQUALS = "not_equals"
+    GREATER_THAN = "greater_than"
+    LESS_THAN = "less_than"
 
 
 class User(Base):
@@ -81,6 +89,11 @@ class Form(Base):
         back_populates="form",
         cascade="all, delete-orphan",
     )
+    uploaded_files = relationship(
+        "UploadedFile",
+        back_populates="form",
+        cascade="all, delete-orphan",
+    )
 
 
 class Question(Base):
@@ -104,6 +117,13 @@ class Question(Base):
         cascade="all, delete-orphan",
         order_by="QuestionOption.position",
     )
+    logic_rules = relationship(
+        "QuestionLogicRule",
+        foreign_keys="[QuestionLogicRule.question_id]",
+        back_populates="question",
+        cascade="all, delete-orphan",
+        order_by="QuestionLogicRule.position",
+    )
     answers = relationship(
         "Answer",
         back_populates="question",
@@ -112,6 +132,24 @@ class Question(Base):
 
     __table_args__ = (
         Index("ix_questions_form_pos", "form_id", "position"),
+    )
+
+
+class QuestionLogicRule(Base):
+    __tablename__ = "question_logic_rules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    question_id = Column(Integer, ForeignKey("questions.id", ondelete="CASCADE"), nullable=False, index=True)
+    operator = Column(String(32), nullable=False)
+    value = Column(String(255), nullable=False)
+    target_question_id = Column(Integer, ForeignKey("questions.id", ondelete="CASCADE"), nullable=True, index=True)
+    position = Column(Integer, nullable=False, default=0)
+
+    question = relationship("Question", foreign_keys=[question_id], back_populates="logic_rules")
+    target_question = relationship("Question", foreign_keys=[target_question_id])
+
+    __table_args__ = (
+        Index("ix_question_logic_rules_q_pos", "question_id", "position"),
     )
 
 
@@ -164,3 +202,18 @@ class Answer(Base):
         UniqueConstraint("response_id", "question_id", name="uq_response_question"),
         Index("ix_answers_response_question", "response_id", "question_id"),
     )
+
+
+class UploadedFile(Base):
+    __tablename__ = "uploaded_files"
+
+    id = Column(Integer, primary_key=True, index=True)
+    form_id = Column(Integer, ForeignKey("forms.id", ondelete="CASCADE"), nullable=False, index=True)
+    original_name = Column(String(255), nullable=False)
+    stored_name = Column(String(255), nullable=False, unique=True, index=True)
+    content_type = Column(String(128), nullable=False)
+    size_bytes = Column(Integer, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    form = relationship("Form", back_populates="uploaded_files")
+

@@ -67,7 +67,7 @@ export function CreateFormModal({ isOpen, onClose }: CreateFormModalProps) {
           <div>
             <label
               htmlFor="create-title"
-              className="block text-xs font-semibold text-[#6B6570] uppercase tracking-wider mb-2"
+              className="block text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2"
             >
               Form Title
             </label>
@@ -78,7 +78,7 @@ export function CreateFormModal({ isOpen, onClose }: CreateFormModalProps) {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Customer Satisfaction Survey"
-                className="flex-1 px-3.5 py-2.5 bg-white border border-[#E6E6E8] rounded-[8px] text-sm text-[#2B2530] placeholder-[#A8A3AD] focus:outline-hidden focus:border-[#2B2530]"
+                className="flex-1 px-3.5 py-2.5 bg-[var(--surface-page)] border border-[var(--border)] rounded-[8px] text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-hidden focus:border-[var(--primary)]"
               />
               <Button
                 type="submit"
@@ -95,21 +95,21 @@ export function CreateFormModal({ isOpen, onClose }: CreateFormModalProps) {
         </form>
 
         <div className="relative flex items-center justify-center">
-          <div className="w-full border-t border-[#E6E6E8]" />
-          <span className="bg-white px-3 text-xs text-[#A8A3AD] uppercase tracking-wider font-semibold absolute">
+          <div className="w-full border-t border-[var(--border)]" />
+          <span className="bg-[var(--surface-page)] px-3 text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold absolute">
             or create with AI
           </span>
         </div>
 
-        {/* Option 2: AI Prompt Card per DESIGN_SPEC (lavender glow #F3EAFB, #8E4FC0) */}
-        <div className="p-4 rounded-[14px] bg-[#F3EAFB]/60 border border-[#8E4FC0]/30 space-y-3">
+        {/* Option 2: AI Prompt Card per DESIGN_SPEC (lavender glow) */}
+        <div className="p-4 rounded-[14px] bg-[var(--accent-ai-fill)] border border-[var(--accent-ai-border)]/30 space-y-3">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#8E4FC0]" />
-            <span className="text-xs font-bold text-[#8E4FC0] uppercase tracking-wider">
+            <Sparkles className="w-4 h-4 text-[var(--accent-ai-border)]" />
+            <span className="text-xs font-bold text-[var(--accent-ai-border)] uppercase tracking-wider">
               Formly AI Generator
             </span>
           </div>
-          <p className="text-xs text-[#6B6570] leading-relaxed">
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
             Describe what you need (e.g. &quot;Post-event attendee survey with rating and feedback&quot;).
           </p>
           <div className="flex gap-2">
@@ -118,7 +118,7 @@ export function CreateFormModal({ isOpen, onClose }: CreateFormModalProps) {
               value={aiPrompt}
               onChange={(e) => setAiPrompt(e.target.value)}
               placeholder="What questions would you like to ask?"
-              className="flex-1 px-3.5 py-2 bg-white border border-[#8E4FC0]/30 rounded-[8px] text-sm text-[#2B2530] placeholder-[#A8A3AD] focus:outline-hidden focus:border-[#8E4FC0]"
+              className="flex-1 px-3.5 py-2 bg-[var(--surface-page)] border border-[var(--accent-ai-border)]/30 rounded-[8px] text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-hidden focus:border-[var(--accent-ai-border)]"
             />
             <Button
               type="button"
@@ -126,23 +126,23 @@ export function CreateFormModal({ isOpen, onClose }: CreateFormModalProps) {
               size="md"
               onClick={handleCreateWithAi}
               isLoading={createMutation.isPending}
-              className="shrink-0 gap-1.5 text-[#8E4FC0] hover:bg-[#F3EAFB] border-[#8E4FC0]/30"
+              className="shrink-0 gap-1.5 text-[var(--accent-ai-border)] hover:bg-[var(--accent-ai-fill)] border-[var(--accent-ai-border)]/30"
             >
-              <Sparkles className="w-4 h-4 text-[#8E4FC0]" />
+              <Sparkles className="w-4 h-4 text-[var(--accent-ai-border)]" />
               <span>Generate</span>
             </Button>
           </div>
         </div>
 
         {/* Footer: Close and Fullscreen link */}
-        <div className="flex items-center justify-between pt-3 border-t border-[#E6E6E8]">
+        <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]">
           <button
             type="button"
             onClick={() => {
               onClose();
               router.push("/forms/new");
             }}
-            className="text-xs text-[#6B6570] hover:text-[#2B2530] flex items-center gap-1 font-medium"
+            className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 font-medium"
           >
             <span>Open full screen creation page</span>
             <ArrowRight className="w-3 h-3" />

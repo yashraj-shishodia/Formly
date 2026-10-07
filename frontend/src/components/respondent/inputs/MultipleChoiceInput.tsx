@@ -75,18 +75,36 @@ export function MultipleChoiceInput({
             key={option.id ?? idx}
             type="button"
             onClick={() => handleSelect(option.label)}
+            style={
+              isSelected
+                ? {
+                    borderColor: "var(--form-button, #2B2530)",
+                    color: "var(--form-text, #2B2530)",
+                  }
+                : {
+                    color: "var(--form-text, #2B2530)",
+                  }
+            }
             className={`flex items-center gap-3.5 px-4 py-3 min-h-[48px] min-w-[240px] max-w-[440px] w-fit rounded-[4px] text-left transition-all select-none cursor-pointer ${
               isSelected
-                ? "bg-white border-2 border-[#2B2530] text-[#2B2530] shadow-xs"
-                : "bg-[#E0E0E2] hover:bg-[#D4D2D6] text-[#2B2530] border-2 border-transparent"
+                ? "bg-white border-2 shadow-xs"
+                : "bg-[#E0E0E2] hover:bg-[#D4D2D6] border-2 border-transparent"
             }`}
           >
-            {/* Letter badge: outlined when idle, filled dark when selected */}
+            {/* Letter badge: outlined when idle, filled button color when selected */}
             <div
-              className={`w-7 h-7 rounded-[3px] flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${
+              style={
                 isSelected
-                  ? "bg-[#2B2530] text-white"
-                  : "border border-[#8E8A93] bg-transparent text-[#2B2530]"
+                  ? {
+                      backgroundColor: "var(--form-button, #2B2530)",
+                      color: "var(--form-button-text, #FFFFFF)",
+                    }
+                  : {
+                      color: "var(--form-text, #2B2530)",
+                    }
+              }
+              className={`w-7 h-7 rounded-[3px] flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${
+                isSelected ? "" : "border border-[#8E8A93] bg-transparent"
               }`}
             >
               {isSelected && isMultiSelect ? (
@@ -97,7 +115,13 @@ export function MultipleChoiceInput({
             </div>
 
             {/* Option Label */}
-            <span className="text-[17px] font-normal leading-normal pr-2 font-karla">
+            <span
+              style={{
+                color: "var(--form-text, #2B2530)",
+                fontFamily: "var(--form-font, var(--font-karla))",
+              }}
+              className="text-[17px] font-normal leading-normal pr-2"
+            >
               {option.label}
             </span>
           </button>

@@ -34,9 +34,9 @@ def seed_database(db: Optional[Session] = None, force: bool = False):
         # Create all tables first if not already created
         Base.metadata.create_all(bind=engine)
 
-        form_count = db.query(Form).count()
-        if form_count > 0 and not force:
-            logger.info("Database already contains forms. Skipping seed.")
+        has_seed = db.query(Form).filter(Form.slug == "cust-feedback").first()
+        if has_seed and not force:
+            logger.info("Database already contains seeded forms. Skipping seed.")
             return
 
         logger.info("Starting database seeding...")
@@ -357,7 +357,14 @@ def seed_database(db: Optional[Session] = None, force: bool = False):
             required=False,
             position=1,
         )
-        db.add_all([f4_q1, f4_q2])
+        f4_q3 = Question(
+            form_id=form4.id,
+            type=QuestionType.FILE_UPLOAD.value,
+            title="Upload any supporting documents or diagrams",
+            required=False,
+            position=2,
+        )
+        db.add_all([f4_q1, f4_q2, f4_q3])
         db.commit()
 
         # ----------------------------------------------------

@@ -7,9 +7,13 @@ import {
   PublicForm,
   Question,
   QuestionCreate,
+  QuestionLogicRule,
+  QuestionLogicRuleCreate,
   QuestionUpdate,
   ResponseDetail,
   ResponseListResponse,
+  ResponseProgressResult,
+  ResponseProgressSubmit,
   ResponseSubmit,
   SubmitResult,
 } from "./types";
@@ -157,11 +161,48 @@ export const api = {
       body: JSON.stringify({ question_ids: questionIds }),
     }),
 
+  // Logic Rules
+  getLogicRules: (questionId: number) =>
+    request<QuestionLogicRule[]>(`/api/questions/${questionId}/logic-rules`),
+
+  createLogicRule: (questionId: number, payload: QuestionLogicRuleCreate) =>
+    request<QuestionLogicRule>(`/api/questions/${questionId}/logic-rules`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  updateLogicRule: (
+    questionId: number,
+    ruleId: number,
+    payload: Partial<QuestionLogicRuleCreate>
+  ) =>
+    request<QuestionLogicRule>(
+      `/api/questions/${questionId}/logic-rules/${ruleId}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }
+    ),
+
+  deleteLogicRule: (questionId: number, ruleId: number) =>
+    request<{ message: string }>(
+      `/api/questions/${questionId}/logic-rules/${ruleId}`,
+      {
+        method: "DELETE",
+      }
+    ),
+
   // Public Respondent Flow
   getPublicForm: (slug: string) => request<PublicForm>(`/api/public/forms/${slug}`),
 
   submitPublicResponse: (slug: string, payload: ResponseSubmit) =>
     request<SubmitResult>(`/api/public/forms/${slug}/responses`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  saveResponseProgress: (slug: string, payload: ResponseProgressSubmit) =>
+    request<ResponseProgressResult>(`/api/public/forms/${slug}/responses/progress`, {
       method: "POST",
       body: JSON.stringify(payload),
     }),
@@ -185,4 +226,41 @@ export const api = {
 
   getCsvExportUrl: (formId: number) =>
     `${API_BASE}/api/forms/${formId}/responses/export.csv`,
+
+  // File Uploads
+  uploadPublicFile: async (
+    slug: string,
+    file: File
+  ): Promise<{ file_id: number; original_name: string; size_bytes: number }> => {
+    const url = `${API_BASE}/api/public/forms/${slug}/uploads`;
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(url, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      let errorData: unknown;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = await response.text();
+      }
+      const message =
+        typeof errorData === "object" &&
+        errorData !== null &&
+        "detail" in errorData &&
+        typeof (errorData as { detail: unknown }).detail === "string"
+          ? (errorData as { detail: string }).detail
+          : `Upload failed with status ${response.status}`;
+      throw new ApiError(response.status, message, errorData);
+    }
+
+    return response.json();
+  },
+
+  getFileDownloadUrl: (fileId: number) =>
+    `${API_BASE}/api/files/${fileId}`,
 };

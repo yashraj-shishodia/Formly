@@ -56,8 +56,41 @@ export const tokens = {
     full: "9999px",
   },
 
-  fonts: {
+    fonts: {
     app: "var(--font-inter), sans-serif",
     respondent: "var(--font-karla), sans-serif",
   },
 } as const;
+
+export interface AllowedFont {
+  name: string;
+  label: string;
+  cssValue: string;
+}
+
+export const ALLOWED_FONTS: Record<string, AllowedFont> = {
+  Karla: {
+    name: "Karla",
+    label: "Karla (Humanist Rounded - Default)",
+    cssValue: "var(--font-karla), sans-serif",
+  },
+  Inter: {
+    name: "Inter",
+    label: "Inter (Neo-grotesque UI)",
+    cssValue: "var(--font-inter), sans-serif",
+  },
+  "sans-serif": {
+    name: "sans-serif",
+    label: "System Sans-Serif",
+    cssValue: "system-ui, -apple-system, sans-serif",
+  },
+};
+
+export const ALLOWED_FONT_LIST: AllowedFont[] = Object.values(ALLOWED_FONTS);
+
+export function resolveThemeFontCss(fontName?: string | null): string {
+  if (fontName && ALLOWED_FONTS[fontName]) {
+    return ALLOWED_FONTS[fontName].cssValue;
+  }
+  return ALLOWED_FONTS.Karla.cssValue;
+}

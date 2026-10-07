@@ -14,12 +14,12 @@ interface RenameModalProps {
 }
 
 export function RenameModal({ form, isOpen, onClose }: RenameModalProps) {
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(form?.title || "");
   const updateMutation = useUpdateForm(form?.id ?? 0);
 
   useEffect(() => {
     if (form) {
-      setTitle(form.title);
+      setTitle((prev) => (prev === form.title ? prev : form.title));
     }
   }, [form]);
 
@@ -54,7 +54,7 @@ export function RenameModal({ form, isOpen, onClose }: RenameModalProps) {
         <div>
           <label
             htmlFor="form-title"
-            className="block text-xs font-semibold text-[#6B6570] uppercase tracking-wider mb-2"
+            className="block text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2"
           >
             Form Title
           </label>
@@ -65,11 +65,11 @@ export function RenameModal({ form, isOpen, onClose }: RenameModalProps) {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Customer Satisfaction Survey"
             autoFocus
-            className="w-full px-3.5 py-2.5 bg-white border border-[#E6E6E8] rounded-[8px] text-sm text-[#2B2530] placeholder-[#A8A3AD] focus:outline-hidden focus:border-[#2B2530]"
+            className="w-full px-3.5 py-2.5 bg-[var(--surface-page)] border border-[var(--border)] rounded-[8px] text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-hidden focus:border-[var(--primary)]"
           />
         </div>
 
-        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#E6E6E8]">
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[var(--border)]">
           <Button
             type="button"
             variant="secondary"

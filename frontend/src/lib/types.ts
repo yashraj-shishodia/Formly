@@ -14,7 +14,8 @@ export type QuestionType =
   | "email"
   | "number"
   | "yes_no"
-  | "rating";
+  | "rating"
+  | "file_upload";
 
 export interface ThemeConfig {
   background_color: string;
@@ -50,6 +51,24 @@ export interface QuestionOptionCreate {
   position?: number;
 }
 
+export type LogicOperator = "equals" | "not_equals" | "greater_than" | "less_than";
+
+export interface QuestionLogicRule {
+  id: number;
+  question_id: number;
+  operator: LogicOperator;
+  value: string;
+  target_question_id?: number | null;
+  position: number;
+}
+
+export interface QuestionLogicRuleCreate {
+  operator: LogicOperator;
+  value: string;
+  target_question_id?: number | null;
+  position?: number;
+}
+
 export interface Question {
   id: number;
   form_id: number;
@@ -60,6 +79,7 @@ export interface Question {
   position: number;
   settings_json?: string | null;
   options: QuestionOption[];
+  logic_rules?: QuestionLogicRule[];
   created_at: string;
   updated_at: string;
 }
@@ -75,6 +95,7 @@ export interface QuestionCreate {
 }
 
 export interface QuestionUpdate {
+  type?: QuestionType;
   title?: string;
   description?: string | null;
   required?: boolean;
@@ -137,6 +158,7 @@ export interface PublicQuestion {
   position: number;
   settings_json?: string | null;
   options: QuestionOption[];
+  logic_rules?: QuestionLogicRule[];
 }
 
 export interface PublicForm {
@@ -161,8 +183,25 @@ export interface AnswerSubmit {
 }
 
 export interface ResponseSubmit {
+  response_id?: number | null;
   answers: AnswerSubmit[];
   started_at?: string;
+}
+
+export interface ResponseProgressSubmit {
+  response_id?: number | null;
+  started_at?: string;
+  answers: AnswerSubmit[];
+}
+
+export interface ResponseProgressResult {
+  response_id: number;
+}
+
+export interface UploadedFileInfo {
+  file_id: number;
+  original_name: string;
+  size_bytes: number;
 }
 
 export interface SubmitResult {
@@ -178,7 +217,10 @@ export interface ResponseListItem {
   status: ResponseStatus;
   started_at: string;
   submitted_at?: string | null;
-  answers: Record<string, string | number | boolean | string[] | null>;
+  answers: Record<
+    string,
+    string | number | boolean | string[] | { file_id: number; original_name: string } | null
+  >;
 }
 
 export interface ResponseListResponse {

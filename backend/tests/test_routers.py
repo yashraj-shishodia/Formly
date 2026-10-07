@@ -288,3 +288,199 @@ def test_all_eight_question_types_flow(client):
     # Delete response
     del_resp = client.delete(f"/api/responses/{resp_id}")
     assert del_resp.status_code == 200
+
+
+def test_change_question_type_persists(client):
+    # 1. Create form
+    f_res = client.post("/api/forms", json={"title": "Type Change Test"})
+    assert f_res.status_code == 201
+    form_id = f_res.json()["id"]
+
+    # 2. Add short_text question
+    q_res = client.post(
+        f"/api/forms/{form_id}/questions",
+        json={"type": "short_text", "title": "Change Me", "required": False},
+    )
+    assert q_res.status_code == 201
+    q_data = q_res.json()
+    q_id = q_data["id"]
+    assert q_data["type"] == "short_text"
+
+    # 3. PATCH type short_text -> rating
+    patch_res = client.patch(
+        f"/api/questions/{q_id}",
+        json={"type": "rating"},
+    )
+    assert patch_res.status_code == 200
+    patched = patch_res.json()
+    assert patched["type"] == "rating"
+    assert patched["settings_json"] is not None
+    settings = json.loads(patched["settings_json"])
+    assert "max_rating" in settings
+    assert settings["max_rating"] == 5
+
+    # 4. Fresh GET on form and verify persistence
+    get_res = client.get(f"/api/forms/{form_id}")
+    assert get_res.status_code == 200
+    fresh_questions = get_res.json()["questions"]
+    target_q = next(q for q in fresh_questions if q["id"] == q_id)
+    assert target_q["type"] == "rating"
+    assert target_q["settings_json"] is not None
+    fresh_settings = json.loads(target_q["settings_json"])
+    assert fresh_settings.get("max_rating") == 5
+
+
+def test_partial_response_tracking(client):
+    # 1. Setup Form A with Q1 (required) and Q2 (optional rating)
+    res_a = client.post("/api/forms", json={"title": "Form A Partial Test"})
+    assert res_a.status_code == 201
+    form_a_id = res_a.json()["id"]
+
+    q1_res = client.post(
+        f"/api/forms/{form_a_id}/questions",
+        json={"type": "short_text", "title": "Required Name", "required": True},
+    )
+    assert q1_res.status_code == 201
+    q1_id = q1_res.json()["id"]
+
+    q2_res = client.post(
+        f"/api/forms/{form_a_id}/questions",
+        json={"type": "rating", "title": "Optional Rating", "required": False},
+    )
+    assert q2_res.status_code == 201
+    q2_id = q2_res.json()["id"]
+
+    pub_a = client.post(f"/api/forms/{form_a_id}/publish")
+    assert pub_a.status_code == 200
+    slug_a = pub_a.json()["slug"]
+
+    # Setup Form B for foreign response testing
+    res_b = client.post("/api/forms", json={"title": "Form B Foreign Test"})
+    assert res_b.status_code == 201
+    form_b_id = res_b.json()["id"]
+
+    q3_res = client.post(
+        f"/api/forms/{form_b_id}/questions",
+        json={"type": "short_text", "title": "Form B Q", "required": True},
+    )
+    assert q3_res.status_code == 201
+    q3_id = q3_res.json()["id"]
+
+    pub_b = client.post(f"/api/forms/{form_b_id}/publish")
+    assert pub_b.status_code == 200
+    slug_b = pub_b.json()["slug"]
+
+    # 2. Create partial response (required is NOT enforced on partial)
+    # Even though Q1 is required, we submit only Q2:
+    prog_res1 = client.post(
+        f"/api/public/forms/{slug_a}/responses/progress",
+        json={"answers": [{"question_id": q2_id, "value_number": 4}]},
+    )
+    assert prog_res1.status_code == 200
+    resp_id = prog_res1.json()["response_id"]
+
+    # Type validation still applies to non-empty answers (e.g. rating > 5 fails)
+    invalid_prog = client.post(
+        f"/api/public/forms/{slug_a}/responses/progress",
+        json={"response_id": resp_id, "answers": [{"question_id": q2_id, "value_number": 99}]},
+    )
+    assert invalid_prog.status_code == 422
+
+    # Check that response in DB has status "partial"
+    get_resp = client.get(f"/api/responses/{resp_id}")
+    assert get_resp.status_code == 200
+    assert get_resp.json()["status"] == "partial"
+    assert get_resp.json()["submitted_at"] is None
+
+    # 3. Update partial response
+    prog_res2 = client.post(
+        f"/api/public/forms/{slug_a}/responses/progress",
+        json={
+            "response_id": resp_id,
+            "answers": [{"question_id": q1_id, "value_text": "Alice In Progress"}],
+        },
+    )
+    assert prog_res2.status_code == 200
+    assert prog_res2.json()["response_id"] == resp_id
+
+    # 4. Reject foreign response_id (belongs to Form A, attempted on Form B)
+    foreign_prog = client.post(
+        f"/api/public/forms/{slug_b}/responses/progress",
+        json={"response_id": resp_id, "answers": [{"question_id": q3_id, "value_text": "Test"}]},
+    )
+    assert foreign_prog.status_code == 404
+
+    foreign_submit = client.post(
+        f"/api/public/forms/{slug_b}/responses",
+        json={"response_id": resp_id, "answers": [{"question_id": q3_id, "value_text": "Test"}]},
+    )
+    assert foreign_submit.status_code == 404
+
+    # 5. Promote partial response to completed (no duplicate row)
+    submit_res = client.post(
+        f"/api/public/forms/{slug_a}/responses",
+        json={
+            "response_id": resp_id,
+            "answers": [
+                {"question_id": q1_id, "value_text": "Alice Final"},
+                {"question_id": q2_id, "value_number": 5},
+            ],
+        },
+    )
+    assert submit_res.status_code == 201
+    assert submit_res.json()["response_id"] == resp_id
+
+    # Verify response is now completed
+    get_promoted = client.get(f"/api/responses/{resp_id}")
+    assert get_promoted.status_code == 200
+    assert get_promoted.json()["status"] == "completed"
+    assert get_promoted.json()["submitted_at"] is not None
+
+    # Verify no duplicate row: list of responses for Form A has total 1
+    resp_list = client.get(f"/api/forms/{form_a_id}/responses")
+    assert resp_list.status_code == 200
+    assert resp_list.json()["total"] == 1
+
+    # 6. Reject completed response_id on both progress and submit
+    completed_prog = client.post(
+        f"/api/public/forms/{slug_a}/responses/progress",
+        json={"response_id": resp_id, "answers": [{"question_id": q1_id, "value_text": "Again"}]},
+    )
+    assert completed_prog.status_code == 409
+
+    completed_sub = client.post(
+        f"/api/public/forms/{slug_a}/responses",
+        json={"response_id": resp_id, "answers": [{"question_id": q1_id, "value_text": "Again"}]},
+    )
+    assert completed_sub.status_code == 409
+
+    # 7. Summary counts and response_count counts completed only
+    # Add a second partial response to Form A
+    prog2 = client.post(
+        f"/api/public/forms/{slug_a}/responses/progress",
+        json={"answers": [{"question_id": q1_id, "value_text": "Bob Partial"}]},
+    )
+    assert prog2.status_code == 200
+    bob_resp_id = prog2.json()["response_id"]
+    assert bob_resp_id != resp_id
+
+    # Total responses in Form A is 2 (1 completed, 1 partial)
+    # Check dashboard/form response_count counts ONLY completed responses (1)
+    forms_list = client.get("/api/forms")
+    assert forms_list.status_code == 200
+    form_a_item = next(f for f in forms_list.json() if f["id"] == form_a_id)
+    assert form_a_item["response_count"] == 1
+
+    form_detail = client.get(f"/api/forms/{form_a_id}")
+    assert form_detail.status_code == 200
+    assert form_detail.json()["response_count"] == 1
+
+    # Results summary reports total/completed/partial/completion rate
+    summary_res = client.get(f"/api/forms/{form_a_id}/summary")
+    assert summary_res.status_code == 200
+    summary = summary_res.json()
+    assert summary["total_responses"] == 2
+    assert summary["completed_responses"] == 1
+    assert summary["partial_responses"] == 1
+    assert summary["completion_rate"] == 50.0
+

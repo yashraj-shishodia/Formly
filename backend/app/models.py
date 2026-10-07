@@ -217,7 +217,3 @@ class UploadedFile(Base):
 
     form = relationship("Form", back_populates="uploaded_files")
 
-    __table_args__ = (
-        Index("ix_uploaded_files_form_id", "form_id"),
-    )
-

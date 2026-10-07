@@ -21,7 +21,6 @@ interface QuestionShellProps {
 
 export function QuestionShell({
   number,
-  totalQuestions,
   title,
   description,
   required = false,

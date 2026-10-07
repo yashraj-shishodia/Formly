@@ -29,13 +29,16 @@ export function RatingInput({
     [onChange, onAutoAdvance]
   );
 
-  // Keyboard shortcut for 1..9
+  // Keyboard shortcut for 1..9 and 0 for 10
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       if (tag === "input" || tag === "textarea") return;
 
-      const num = parseInt(e.key, 10);
+      let num = parseInt(e.key, 10);
+      if (e.key === "0" && maxRating >= 10) {
+        num = 10;
+      }
       if (!isNaN(num) && num >= 1 && num <= maxRating) {
         e.preventDefault();
         handleSelect(num);

@@ -76,7 +76,7 @@ export function DropdownInput({
 
       {/* Dropdown Popover */}
       {isOpen && (
-        <div className="absolute left-0 top-13 w-full bg-white rounded-[8px] border border-[#E6E6E8] shadow-xl py-2 z-30 max-h-60 overflow-hidden flex flex-col animate-in fade-in-50 duration-100">
+        <div className="absolute left-0 top-full mt-1.5 w-full bg-white rounded-[8px] border border-[#E6E6E8] shadow-xl py-2 z-30 max-h-60 overflow-hidden flex flex-col animate-in fade-in-50 duration-100">
           {/* Search box if > 4 options */}
           {options.length > 4 && (
             <div className="px-3 pb-2 border-b border-[#F0EFF2] flex items-center gap-2">

@@ -7,6 +7,8 @@ import {
   PublicForm,
   Question,
   QuestionCreate,
+  QuestionLogicRule,
+  QuestionLogicRuleCreate,
   QuestionUpdate,
   ResponseDetail,
   ResponseListResponse,
@@ -158,6 +160,37 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ question_ids: questionIds }),
     }),
+
+  // Logic Rules
+  getLogicRules: (questionId: number) =>
+    request<QuestionLogicRule[]>(`/api/questions/${questionId}/logic-rules`),
+
+  createLogicRule: (questionId: number, payload: QuestionLogicRuleCreate) =>
+    request<QuestionLogicRule>(`/api/questions/${questionId}/logic-rules`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  updateLogicRule: (
+    questionId: number,
+    ruleId: number,
+    payload: Partial<QuestionLogicRuleCreate>
+  ) =>
+    request<QuestionLogicRule>(
+      `/api/questions/${questionId}/logic-rules/${ruleId}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }
+    ),
+
+  deleteLogicRule: (questionId: number, ruleId: number) =>
+    request<{ message: string }>(
+      `/api/questions/${questionId}/logic-rules/${ruleId}`,
+      {
+        method: "DELETE",
+      }
+    ),
 
   // Public Respondent Flow
   getPublicForm: (slug: string) => request<PublicForm>(`/api/public/forms/${slug}`),

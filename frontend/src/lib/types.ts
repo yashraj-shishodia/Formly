@@ -50,6 +50,24 @@ export interface QuestionOptionCreate {
   position?: number;
 }
 
+export type LogicOperator = "equals" | "not_equals" | "greater_than" | "less_than";
+
+export interface QuestionLogicRule {
+  id: number;
+  question_id: number;
+  operator: LogicOperator;
+  value: string;
+  target_question_id?: number | null;
+  position: number;
+}
+
+export interface QuestionLogicRuleCreate {
+  operator: LogicOperator;
+  value: string;
+  target_question_id?: number | null;
+  position?: number;
+}
+
 export interface Question {
   id: number;
   form_id: number;
@@ -60,6 +78,7 @@ export interface Question {
   position: number;
   settings_json?: string | null;
   options: QuestionOption[];
+  logic_rules?: QuestionLogicRule[];
   created_at: string;
   updated_at: string;
 }
@@ -138,6 +157,7 @@ export interface PublicQuestion {
   position: number;
   settings_json?: string | null;
   options: QuestionOption[];
+  logic_rules?: QuestionLogicRule[];
 }
 
 export interface PublicForm {

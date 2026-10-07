@@ -30,7 +30,7 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
   const resolvedParams = use(params);
   const formId = parseInt(resolvedParams.id, 10);
 
-  const { data: form, isLoading, isError } = useForm(formId);
+  const { data: form, isLoading, isError, refetch } = useForm(formId);
 
   // Mutations
   const addQuestionMutation = useAddQuestion(formId);
@@ -360,9 +360,13 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
         >
           <RightSettingsPanel
             question={selectedQuestion}
+            allQuestions={sortedQuestions}
             onUpdateQuestion={handleUpdateQuestion}
             onUpdateOptions={handleUpdateOptions}
             onChangeType={handleChangeType}
+            onRefreshForm={() => {
+              refetch();
+            }}
           />
         </div>
       </div>

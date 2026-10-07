@@ -5,7 +5,17 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import get_current_user
-from app.models import Form, FormStatus, Question, QuestionOption, Response, ResponseStatus, User, utc_now
+from app.models import (
+    Form,
+    FormStatus,
+    Question,
+    QuestionLogicRule,
+    QuestionOption,
+    Response,
+    ResponseStatus,
+    User,
+    utc_now,
+)
 from app.schemas import (
     EndingScreenConfig,
     FormCreate,
@@ -232,6 +242,7 @@ def duplicate_form(
     db.refresh(new_form)
 
     # Deep copy questions and options
+    q_id_map = {}
     for q in original.questions:
         new_q = Question(
             form_id=new_form.id,
@@ -245,6 +256,7 @@ def duplicate_form(
         db.add(new_q)
         db.commit()
         db.refresh(new_q)
+        q_id_map[q.id] = new_q.id
 
         for opt in q.options:
             new_opt = QuestionOption(
@@ -253,6 +265,24 @@ def duplicate_form(
                 position=opt.position,
             )
             db.add(new_opt)
+
+    # Deep copy logic rules with remapped question ids
+    for q in original.questions:
+        new_q_id = q_id_map.get(q.id)
+        if not new_q_id:
+            continue
+        for rule in q.logic_rules:
+            new_target_id = None
+            if rule.target_question_id is not None:
+                new_target_id = q_id_map.get(rule.target_question_id)
+            new_rule = QuestionLogicRule(
+                question_id=new_q_id,
+                operator=rule.operator,
+                value=rule.value,
+                target_question_id=new_target_id,
+                position=rule.position,
+            )
+            db.add(new_rule)
 
     db.commit()
     db.refresh(new_form)

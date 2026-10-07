@@ -15,6 +15,7 @@ from app.schemas import (
     ThemeConfig,
     WelcomeScreenConfig,
 )
+from app.services.logic import evaluate_logic_path
 from app.services.validation import is_answer_empty, validate_answer
 
 router = APIRouter(prefix="/api/public", tags=["Public Respondent Flow"])
@@ -50,6 +51,7 @@ def get_public_form(slug: str, db: Session = Depends(get_db)):
     public_questions = []
     for q in sorted_questions:
         sorted_opts = sorted(q.options, key=lambda o: o.position)
+        sorted_rules = sorted(q.logic_rules, key=lambda r: r.position)
         public_questions.append(
             PublicQuestion(
                 id=q.id,
@@ -60,6 +62,7 @@ def get_public_form(slug: str, db: Session = Depends(get_db)):
                 position=q.position,
                 settings_json=q.settings_json,
                 options=sorted_opts,
+                logic_rules=sorted_rules,
             )
         )
 
@@ -226,9 +229,13 @@ def submit_public_response(
     # Map answers submitted by question_id
     answers_by_qid = {a.question_id: a for a in payload.answers}
 
-    # Validate each question in the form
+    # Evaluate logic path to determine visited questions
+    visited_qids = set(evaluate_logic_path(form.questions, answers_by_qid))
+    visited_questions = [q for q in form.questions if q.id in visited_qids]
+
+    # Validate each visited question in the form
     field_errors = {}
-    for question in form.questions:
+    for question in visited_questions:
         ans = answers_by_qid.get(question.id)
         err = validate_answer(question, ans)
         if err:
@@ -262,8 +269,8 @@ def submit_public_response(
         db.commit()
         db.refresh(response)
 
-    # Save answers
-    for question in form.questions:
+    # Save answers (for visited questions only)
+    for question in visited_questions:
         ans = answers_by_qid.get(question.id)
         if ans and not is_answer_empty(ans):
             answer_record = Answer(

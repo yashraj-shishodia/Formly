@@ -42,6 +42,13 @@ class QuestionType(str, enum.Enum):
     RATING = "rating"
 
 
+class LogicOperator(str, enum.Enum):
+    EQUALS = "equals"
+    NOT_EQUALS = "not_equals"
+    GREATER_THAN = "greater_than"
+    LESS_THAN = "less_than"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -104,6 +111,13 @@ class Question(Base):
         cascade="all, delete-orphan",
         order_by="QuestionOption.position",
     )
+    logic_rules = relationship(
+        "QuestionLogicRule",
+        foreign_keys="[QuestionLogicRule.question_id]",
+        back_populates="question",
+        cascade="all, delete-orphan",
+        order_by="QuestionLogicRule.position",
+    )
     answers = relationship(
         "Answer",
         back_populates="question",
@@ -112,6 +126,24 @@ class Question(Base):
 
     __table_args__ = (
         Index("ix_questions_form_pos", "form_id", "position"),
+    )
+
+
+class QuestionLogicRule(Base):
+    __tablename__ = "question_logic_rules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    question_id = Column(Integer, ForeignKey("questions.id", ondelete="CASCADE"), nullable=False, index=True)
+    operator = Column(String(32), nullable=False)
+    value = Column(String(255), nullable=False)
+    target_question_id = Column(Integer, ForeignKey("questions.id", ondelete="CASCADE"), nullable=True, index=True)
+    position = Column(Integer, nullable=False, default=0)
+
+    question = relationship("Question", foreign_keys=[question_id], back_populates="logic_rules")
+    target_question = relationship("Question", foreign_keys=[target_question_id])
+
+    __table_args__ = (
+        Index("ix_question_logic_rules_q_pos", "question_id", "position"),
     )
 
 

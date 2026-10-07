@@ -13,6 +13,7 @@ import {
   RawAnswerValue,
 } from "@/lib/validators";
 import { resolveThemeFontCss } from "@/lib/tokens";
+import { findMatchingRule } from "@/lib/logic";
 import { QuestionShell } from "./QuestionShell";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { ThankYouScreen } from "./ThankYouScreen";
@@ -47,6 +48,7 @@ export function FormRunner({
     hasWelcomeScreen ? "welcome" : "question"
   );
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [history, setHistory] = useState<number[]>([0]);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [answers, setAnswers] = useState<Record<number, RawAnswerValue>>({});
   const [errors, setErrors] = useState<Record<number, string>>({});
@@ -69,6 +71,18 @@ export function FormRunner({
   const currentAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
   const currentError = currentQuestion ? errors[currentQuestion.id] : null;
 
+  // Evaluate matching rule for current question & answer
+  const matchingRule = useMemo(() => {
+    if (!currentQuestion) return null;
+    return findMatchingRule(currentQuestion, currentAnswer);
+  }, [currentQuestion, currentAnswer]);
+
+  const isJumpToEnd =
+    matchingRule !== null &&
+    (matchingRule.target_question_id === null || matchingRule.target_question_id === undefined);
+
+  const isSubmitStep = isLastQuestion || isJumpToEnd;
+
   // Update answer for current question
   const handleAnswerChange = useCallback(
     (value: RawAnswerValue) => {
@@ -86,7 +100,7 @@ export function FormRunner({
     [currentQuestion, errors]
   );
 
-  // Navigate forward
+  // Navigate forward with logic branching
   const goNext = useCallback(async () => {
     if (!currentQuestion) return;
 
@@ -135,16 +149,41 @@ export function FormRunner({
       }
     }
 
-    if (!isLastQuestion) {
+    // Determine next question via logic rules or sequential progression
+    const rule = findMatchingRule(currentQuestion, currentAnswer);
+    let targetIdx: number | null = null;
+    let jumpToEnd = false;
+
+    if (rule) {
+      if (rule.target_question_id === null || rule.target_question_id === undefined) {
+        jumpToEnd = true;
+      } else {
+        const found = questions.findIndex((q) => q.id === rule.target_question_id);
+        if (found !== -1 && found > currentIndex) {
+          targetIdx = found;
+        }
+      }
+    }
+
+    if (!jumpToEnd && targetIdx === null && !isLastQuestion) {
+      targetIdx = currentIndex + 1;
+    }
+
+    // Advance to next question along the logic path
+    if (targetIdx !== null) {
       setDirection(1);
-      setCurrentIndex((i) => i + 1);
+      setHistory((prev) => [...prev, targetIdx!]);
+      setCurrentIndex(targetIdx);
       return;
     }
 
-    // On last question: Run full validation on ALL questions
+    // Reached submit point (jumpToEnd or isLastQuestion): validate only visited path
+    const visitedIndices = Array.from(new Set([...history, currentIndex]));
+    const visitedQuestions = visitedIndices.map((i) => questions[i]);
+
     const validationErrors: Record<number, string> = {};
-    for (let i = 0; i < questions.length; i++) {
-      const q = questions[i];
+    for (let i = 0; i < visitedQuestions.length; i++) {
+      const q = visitedQuestions[i];
       const qErr = validateQuestionAnswer(q, answers[q.id]);
       if (qErr) {
         validationErrors[q.id] = qErr;
@@ -153,7 +192,7 @@ export function FormRunner({
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      // Navigate to the first invalid question
+      // Navigate to the first invalid visited question
       const firstInvalidIndex = questions.findIndex(
         (q) => !!validationErrors[q.id]
       );
@@ -178,7 +217,7 @@ export function FormRunner({
 
     setIsSubmitting(true);
     try {
-      const payloadAnswers = questions.map((q) =>
+      const payloadAnswers = visitedQuestions.map((q) =>
         formatAnswerPayload(q, answers[q.id])
       );
 
@@ -222,21 +261,25 @@ export function FormRunner({
     questions,
     answers,
     currentIndex,
+    history,
     mode,
     form.slug,
     responseId,
   ]);
 
-  // Navigate backward
+  // Navigate backward using history stack
   const goPrev = useCallback(() => {
-    if (currentIndex > 0) {
+    if (history.length > 1) {
+      const nextHistory = history.slice(0, -1);
+      const prevIndex = nextHistory[nextHistory.length - 1];
+      setHistory(nextHistory);
       setDirection(-1);
-      setCurrentIndex((i) => i - 1);
+      setCurrentIndex(prevIndex);
     } else if (hasWelcomeScreen) {
       setDirection(-1);
       setScreen("welcome");
     }
-  }, [currentIndex, hasWelcomeScreen]);
+  }, [history, hasWelcomeScreen]);
 
   // Global Keyboard listener for arrow up/down
   useEffect(() => {
@@ -283,11 +326,15 @@ export function FormRunner({
     }),
   };
 
-  // Progress percentage
+  // Progress percentage based on visited path
   const progressPercent = useMemo(() => {
     if (questions.length === 0) return 0;
-    return Math.round(((currentIndex + 1) / questions.length) * 100);
-  }, [currentIndex, questions.length]);
+    if (screen === "thankyou" || isSubmitStep) return 100;
+    return Math.min(
+      95,
+      Math.round((history.length / Math.max(questions.length, history.length)) * 100)
+    );
+  }, [history.length, isSubmitStep, questions.length, screen]);
 
   // Render question input component based on type
   const renderInput = () => {
@@ -551,7 +598,7 @@ export function FormRunner({
                   required={currentQuestion.required}
                   error={currentError}
                   onContinue={goNext}
-                  isLastQuestion={isLastQuestion}
+                  isLastQuestion={isSubmitStep}
                   isSubmitting={isSubmitting}
                 >
                   {renderInput()}
@@ -586,7 +633,7 @@ export function FormRunner({
             <button
               type="button"
               onClick={goPrev}
-              disabled={currentIndex === 0 && !hasWelcomeScreen}
+              disabled={history.length <= 1 && !hasWelcomeScreen}
               className="w-10 h-10 flex items-center justify-center text-[#2B2530] hover:bg-[#F5F5F5] disabled:opacity-30 disabled:hover:bg-white transition-colors border-r border-[#E6E6E8] cursor-pointer disabled:cursor-not-allowed"
               title="Previous question (↑)"
               aria-label="Previous question"

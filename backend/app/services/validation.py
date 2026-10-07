@@ -34,7 +34,11 @@ def is_answer_empty(answer: Optional[AnswerSubmit]) -> bool:
     return True
 
 
-def validate_answer(question: Question, answer: Optional[AnswerSubmit]) -> Optional[str]:
+def validate_answer(
+    question: Question,
+    answer: Optional[AnswerSubmit],
+    enforce_required: bool = True,
+) -> Optional[str]:
     """
     Validates an answer against question rules and type constraints.
     Returns an error message string if invalid, or None if valid.
@@ -42,10 +46,10 @@ def validate_answer(question: Question, answer: Optional[AnswerSubmit]) -> Optio
     empty = is_answer_empty(answer)
 
     # 1. Check required condition
-    if question.required and empty:
+    if enforce_required and question.required and empty:
         return "This question is required."
 
-    # If optional and empty, it is valid
+    # If empty (and not failing required check above), it is valid
     if empty:
         return None
 

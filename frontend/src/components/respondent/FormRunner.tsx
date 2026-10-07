@@ -50,7 +50,16 @@ export function FormRunner({
   const [answers, setAnswers] = useState<Record<number, RawAnswerValue>>({});
   const [errors, setErrors] = useState<Record<number, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const startTimeRef = useRef<number>(Date.now());
+  const [responseId, setResponseId] = useState<number | null>(null);
+  const responseIdRef = useRef<number | null>(null);
+  const lastSavedAnswersRef = useRef<Record<number, string>>({});
+  const startTimeRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (startTimeRef.current === null) {
+      startTimeRef.current = Date.now();
+    }
+  }, []);
 
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
@@ -85,6 +94,44 @@ export function FormRunner({
     if (err) {
       setErrors((prev) => ({ ...prev, [currentQuestion.id]: err }));
       return;
+    }
+
+    // Track response progress in live mode
+    if (mode === "live" && form.slug) {
+      const hasAnswer =
+        currentAnswer !== undefined &&
+        currentAnswer !== null &&
+        currentAnswer !== "" &&
+        !(Array.isArray(currentAnswer) && currentAnswer.length === 0);
+
+      const currentSerialized = JSON.stringify(currentAnswer ?? null);
+      const isChanged =
+        lastSavedAnswersRef.current[currentQuestion.id] !== currentSerialized;
+
+      if (hasAnswer && isChanged) {
+        lastSavedAnswersRef.current[currentQuestion.id] = currentSerialized;
+        const answerPayload = formatAnswerPayload(
+          currentQuestion,
+          currentAnswer
+        );
+        api
+          .saveResponseProgress(form.slug, {
+            response_id: responseIdRef.current ?? undefined,
+            started_at: startTimeRef.current
+              ? new Date(startTimeRef.current).toISOString()
+              : undefined,
+            answers: [answerPayload],
+          })
+          .then((res) => {
+            if (res?.response_id) {
+              responseIdRef.current = res.response_id;
+              setResponseId(res.response_id);
+            }
+          })
+          .catch(() => {
+            // Progress-call failures are silent (no toast, never block navigation)
+          });
+      }
     }
 
     if (!isLastQuestion) {
@@ -135,7 +182,11 @@ export function FormRunner({
       );
 
       await api.submitPublicResponse(form.slug, {
+        response_id: responseIdRef.current ?? responseId ?? undefined,
         answers: payloadAnswers,
+        started_at: startTimeRef.current
+          ? new Date(startTimeRef.current).toISOString()
+          : undefined,
       });
 
       setScreen("thankyou");
@@ -172,6 +223,7 @@ export function FormRunner({
     currentIndex,
     mode,
     form.slug,
+    responseId,
   ]);
 
   // Navigate backward

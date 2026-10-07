@@ -202,8 +202,19 @@ class AnswerSubmit(BaseSchema):
 
 
 class ResponseSubmit(BaseSchema):
+    response_id: Optional[int] = None
     answers: List[AnswerSubmit] = []
     started_at: Optional[datetime] = None
+
+
+class ResponseProgressSubmit(BaseSchema):
+    response_id: Optional[int] = None
+    started_at: Optional[datetime] = None
+    answers: List[AnswerSubmit] = []
+
+
+class ResponseProgressResponse(BaseSchema):
+    response_id: int
 
 
 class AnswerResponse(BaseSchema):

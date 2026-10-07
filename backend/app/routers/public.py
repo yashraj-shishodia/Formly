@@ -9,6 +9,8 @@ from app.schemas import (
     EndingScreenConfig,
     PublicForm,
     PublicQuestion,
+    ResponseProgressResponse,
+    ResponseProgressSubmit,
     ResponseSubmit,
     ThemeConfig,
     WelcomeScreenConfig,
@@ -83,6 +85,109 @@ def get_public_form(slug: str, db: Session = Depends(get_db)):
     )
 
 
+@router.post("/forms/{slug}/responses/progress", response_model=ResponseProgressResponse)
+def track_response_progress(
+    slug: str,
+    payload: ResponseProgressSubmit,
+    db: Session = Depends(get_db),
+):
+    form = (
+        db.query(Form)
+        .filter(Form.slug == slug, Form.status == FormStatus.PUBLISHED.value)
+        .first()
+    )
+    if not form:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Form not found or currently unavailable.",
+        )
+
+    existing_response = None
+    if payload.response_id is not None:
+        existing_response = (
+            db.query(Response)
+            .filter(Response.id == payload.response_id)
+            .first()
+        )
+        if not existing_response or existing_response.form_id != form.id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Response not found.",
+            )
+        if existing_response.status != ResponseStatus.PARTIAL.value:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Response is already completed.",
+            )
+
+    questions_by_id = {q.id: q for q in form.questions}
+    field_errors = {}
+    for ans in payload.answers:
+        q = questions_by_id.get(ans.question_id)
+        if q and not is_answer_empty(ans):
+            err = validate_answer(q, ans, enforce_required=False)
+            if err:
+                field_errors[str(q.id)] = err
+
+    if field_errors:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "message": "Validation failed",
+                "errors": field_errors,
+            },
+        )
+
+    now = utc_now()
+    if not existing_response:
+        started = payload.started_at or now
+        response = Response(
+            form_id=form.id,
+            status=ResponseStatus.PARTIAL.value,
+            started_at=started,
+            submitted_at=None,
+        )
+        db.add(response)
+        db.commit()
+        db.refresh(response)
+    else:
+        response = existing_response
+
+    # Upsert or clear answers
+    for ans in payload.answers:
+        if ans.question_id not in questions_by_id:
+            continue
+        existing_ans = (
+            db.query(Answer)
+            .filter(
+                Answer.response_id == response.id,
+                Answer.question_id == ans.question_id,
+            )
+            .first()
+        )
+        if is_answer_empty(ans):
+            if existing_ans:
+                db.delete(existing_ans)
+        else:
+            if existing_ans:
+                existing_ans.value_text = ans.value_text
+                existing_ans.value_number = ans.value_number
+                existing_ans.value_json = ans.value_json
+            else:
+                db.add(
+                    Answer(
+                        response_id=response.id,
+                        question_id=ans.question_id,
+                        value_text=ans.value_text,
+                        value_number=ans.value_number,
+                        value_json=ans.value_json,
+                    )
+                )
+
+    db.commit()
+    return {"response_id": response.id}
+
+
 @router.post("/forms/{slug}/responses", status_code=status.HTTP_201_CREATED)
 def submit_public_response(
     slug: str,
@@ -99,6 +204,24 @@ def submit_public_response(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Form not found or currently unavailable.",
         )
+
+    existing_response = None
+    if payload.response_id is not None:
+        existing_response = (
+            db.query(Response)
+            .filter(Response.id == payload.response_id)
+            .first()
+        )
+        if not existing_response or existing_response.form_id != form.id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Response not found.",
+            )
+        if existing_response.status != ResponseStatus.PARTIAL.value:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Response is already completed.",
+            )
 
     # Map answers submitted by question_id
     answers_by_qid = {a.question_id: a for a in payload.answers}
@@ -120,18 +243,24 @@ def submit_public_response(
             },
         )
 
-    # All answers valid; record response
     now = utc_now()
-    started = payload.started_at or now
-    response = Response(
-        form_id=form.id,
-        status=ResponseStatus.COMPLETED.value,
-        started_at=started,
-        submitted_at=now,
-    )
-    db.add(response)
-    db.commit()
-    db.refresh(response)
+    if existing_response:
+        response = existing_response
+        response.status = ResponseStatus.COMPLETED.value
+        response.submitted_at = now
+        # replace answers
+        db.query(Answer).filter(Answer.response_id == response.id).delete()
+    else:
+        started = payload.started_at or now
+        response = Response(
+            form_id=form.id,
+            status=ResponseStatus.COMPLETED.value,
+            started_at=started,
+            submitted_at=now,
+        )
+        db.add(response)
+        db.commit()
+        db.refresh(response)
 
     # Save answers
     for question in form.questions:

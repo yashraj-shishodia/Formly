@@ -10,6 +10,8 @@ import {
   QuestionUpdate,
   ResponseDetail,
   ResponseListResponse,
+  ResponseProgressResult,
+  ResponseProgressSubmit,
   ResponseSubmit,
   SubmitResult,
 } from "./types";
@@ -162,6 +164,12 @@ export const api = {
 
   submitPublicResponse: (slug: string, payload: ResponseSubmit) =>
     request<SubmitResult>(`/api/public/forms/${slug}/responses`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  saveResponseProgress: (slug: string, payload: ResponseProgressSubmit) =>
+    request<ResponseProgressResult>(`/api/public/forms/${slug}/responses/progress`, {
       method: "POST",
       body: JSON.stringify(payload),
     }),

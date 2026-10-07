@@ -162,8 +162,19 @@ export interface AnswerSubmit {
 }
 
 export interface ResponseSubmit {
+  response_id?: number | null;
   answers: AnswerSubmit[];
   started_at?: string;
+}
+
+export interface ResponseProgressSubmit {
+  response_id?: number | null;
+  started_at?: string;
+  answers: AnswerSubmit[];
+}
+
+export interface ResponseProgressResult {
+  response_id: number;
 }
 
 export interface SubmitResult {

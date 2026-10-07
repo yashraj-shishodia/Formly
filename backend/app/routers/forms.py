@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import get_current_user
-from app.models import Form, FormStatus, Question, QuestionOption, Response, User, utc_now
+from app.models import Form, FormStatus, Question, QuestionOption, Response, ResponseStatus, User, utc_now
 from app.schemas import (
     EndingScreenConfig,
     FormCreate,
@@ -33,7 +33,14 @@ def parse_json_model(json_str: Optional[str], model_cls):
 
 
 def build_form_detail(form: Form, db: Session) -> FormDetail:
-    resp_count = db.query(Response).filter(Response.form_id == form.id).count()
+    resp_count = (
+        db.query(Response)
+        .filter(
+            Response.form_id == form.id,
+            Response.status == ResponseStatus.COMPLETED.value,
+        )
+        .count()
+    )
 
     theme = parse_json_model(form.theme_json, ThemeConfig) or ThemeConfig()
     welcome = parse_json_model(form.welcome_screen_json, WelcomeScreenConfig) or WelcomeScreenConfig()
@@ -77,7 +84,14 @@ def list_forms(
 
     result = []
     for f in forms:
-        resp_count = db.query(Response).filter(Response.form_id == f.id).count()
+        resp_count = (
+            db.query(Response)
+            .filter(
+                Response.form_id == f.id,
+                Response.status == ResponseStatus.COMPLETED.value,
+            )
+            .count()
+        )
         result.append(
             FormListItem(
                 id=f.id,

@@ -6,6 +6,8 @@ import { api, ApiError } from "@/lib/api";
 import {
   FormCreate,
   FormUpdate,
+  FormDetail,
+  Question,
   QuestionCreate,
   QuestionUpdate,
   ResponseSubmit,
@@ -139,10 +141,17 @@ export function useUpdateQuestion(formId: number) {
   return useMutation({
     mutationFn: ({ questionId, data }: { questionId: number; data: QuestionUpdate }) =>
       api.updateQuestion(questionId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["forms", formId] });
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["forms", formId], (old: FormDetail | undefined) => {
+        if (!old) return old;
+        return {
+          ...old,
+          questions: old.questions.map((q) => (q.id === updated.id ? updated : q)),
+        };
+      });
     },
     onError: (err: ApiError) => {
+      queryClient.invalidateQueries({ queryKey: ["forms", formId] });
       toast.error(err.message || "Failed to update question");
     },
   });

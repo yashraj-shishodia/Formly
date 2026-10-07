@@ -245,6 +245,14 @@ def update_question(
                 position=opt.position if opt.position is not None else idx,
             )
             db.add(new_opt)
+    elif type_changed and question.type not in [
+        QuestionType.MULTIPLE_CHOICE.value,
+        QuestionType.DROPDOWN.value,
+    ]:
+        # Delete options when changing away from choice type
+        db.query(QuestionOption).filter(
+            QuestionOption.question_id == question_id
+        ).delete()
 
     question.updated_at = utc_now()
     question.form.updated_at = utc_now()

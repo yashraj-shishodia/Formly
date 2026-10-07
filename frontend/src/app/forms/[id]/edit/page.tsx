@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, use, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useForm,
   useAddQuestion,
@@ -10,7 +11,7 @@ import {
   useUpdateForm,
   usePublishForm,
 } from "@/hooks/useForms";
-import { Question, QuestionType, ThemeConfig } from "@/lib/types";
+import { Question, QuestionType, ThemeConfig, FormDetail } from "@/lib/types";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
 import { BuilderHeader } from "@/components/builder/BuilderHeader";
 import { LeftPagesPanel } from "@/components/builder/LeftPagesPanel";
@@ -30,6 +31,7 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
   const resolvedParams = use(params);
   const formId = parseInt(resolvedParams.id, 10);
 
+  const queryClient = useQueryClient();
   const { data: form, isLoading, isError, refetch } = useForm(formId);
 
   // Mutations
@@ -54,8 +56,21 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
   // Responsive mobile/tablet view switcher
   const [mobileTab, setMobileTab] = useState<"questions" | "canvas" | "settings">("canvas");
 
-  // Debounce autosave timer
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Separate refs for debounced autosave per question and per section
+  const pendingUpdatesRef = useRef<Record<number, Partial<Question>>>({});
+  const questionTimersRef = useRef<Record<number, NodeJS.Timeout>>({});
+  const endingsTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const welcomeTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clear timers on unmount
+  useEffect(() => {
+    const qTimers = questionTimersRef.current;
+    return () => {
+      Object.values(qTimers).forEach((t) => clearTimeout(t));
+      if (endingsTimerRef.current) clearTimeout(endingsTimerRef.current);
+      if (welcomeTimerRef.current) clearTimeout(welcomeTimerRef.current);
+    };
+  }, []);
 
   // Select first question automatically once loaded
   useEffect(() => {
@@ -108,44 +123,104 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
     }
   };
 
-  // Inline question update with debounced autosave
+  // Inline question update with debounced autosave and optimistic cache update
   const handleUpdateQuestion = (fields: Partial<Question>) => {
     if (!selectedQuestion) return;
+    const qId = selectedQuestion.id;
 
-    // Trigger mutation
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
+    // 1. Immediately update local query cache so UI reflects changes without lag
+    queryClient.setQueryData(["forms", formId], (old: FormDetail | undefined) => {
+      if (!old) return old;
+      return {
+        ...old,
+        questions: old.questions.map((q) =>
+          q.id === qId ? { ...q, ...fields } : q
+        ),
+      };
+    });
+
+    // 2. Accumulate updates for network payload
+    pendingUpdatesRef.current[qId] = {
+      ...(pendingUpdatesRef.current[qId] || {}),
+      ...fields,
+    };
+
+    // 3. Debounce network PATCH (350ms)
+    if (questionTimersRef.current[qId]) {
+      clearTimeout(questionTimersRef.current[qId]);
     }
 
-    debounceTimerRef.current = setTimeout(() => {
-      updateQuestionMutation.mutate({
-        questionId: selectedQuestion.id,
-        data: {
-          title: fields.title !== undefined ? fields.title : selectedQuestion.title,
-          description: fields.description !== undefined ? fields.description : selectedQuestion.description,
-          required: fields.required !== undefined ? fields.required : selectedQuestion.required,
-          settings_json: fields.settings_json !== undefined ? fields.settings_json : selectedQuestion.settings_json,
-        },
-      });
-    }, 400);
+    questionTimersRef.current[qId] = setTimeout(() => {
+      const pendingData = pendingUpdatesRef.current[qId];
+      delete pendingUpdatesRef.current[qId];
+      delete questionTimersRef.current[qId];
+
+      if (pendingData) {
+        updateQuestionMutation.mutate({
+          questionId: qId,
+          data: {
+            title: pendingData.title,
+            description: pendingData.description,
+            required: pendingData.required,
+            settings_json: pendingData.settings_json,
+          },
+        });
+      }
+    }, 350);
   };
 
-  // Change question type
+  // Change question type (clears options when moving away from choice types)
   const handleChangeType = (type: QuestionType) => {
     if (!selectedQuestion) return;
-    const defaultOptions =
-      (type === "multiple_choice" || type === "dropdown") && selectedQuestion.options.length === 0
-        ? [
-            { label: "Option 1", position: 0 },
-            { label: "Option 2", position: 1 },
-          ]
-        : undefined;
+    const qId = selectedQuestion.id;
+    const isChoice = type === "multiple_choice" || type === "dropdown";
+    const currentIsChoice =
+      selectedQuestion.type === "multiple_choice" ||
+      selectedQuestion.type === "dropdown";
+
+    let nextOptions: Array<{ label: string; position: number }> | undefined = undefined;
+    if (isChoice) {
+      if (selectedQuestion.options.length === 0) {
+        nextOptions = [
+          { label: "Option 1", position: 0 },
+          { label: "Option 2", position: 1 },
+        ];
+      }
+    } else if (currentIsChoice) {
+      // Switching from choice type to non-choice type: clear options!
+      nextOptions = [];
+    }
+
+    if (questionTimersRef.current[qId]) {
+      clearTimeout(questionTimersRef.current[qId]);
+      delete questionTimersRef.current[qId];
+    }
+    delete pendingUpdatesRef.current[qId];
+
+    // Optimistically update cache
+    queryClient.setQueryData(["forms", formId], (old: FormDetail | undefined) => {
+      if (!old) return old;
+      return {
+        ...old,
+        questions: old.questions.map((q) =>
+          q.id === qId
+            ? {
+                ...q,
+                type,
+                options: nextOptions !== undefined
+                  ? nextOptions.map((o, idx) => ({ id: -(idx + 1), question_id: qId, label: o.label, position: o.position }))
+                  : q.options,
+              }
+            : q
+        ),
+      };
+    });
 
     updateQuestionMutation.mutate({
-      questionId: selectedQuestion.id,
+      questionId: qId,
       data: {
         type,
-        options: defaultOptions,
+        options: nextOptions,
       },
     });
   };
@@ -153,8 +228,26 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
   // Options update for multiple choice / dropdown
   const handleUpdateOptions = (options: Array<{ label: string; position: number }>) => {
     if (!selectedQuestion) return;
+    const qId = selectedQuestion.id;
+
+    // Optimistically update query cache
+    queryClient.setQueryData(["forms", formId], (old: FormDetail | undefined) => {
+      if (!old) return old;
+      return {
+        ...old,
+        questions: old.questions.map((q) =>
+          q.id === qId
+            ? {
+                ...q,
+                options: options.map((o, idx) => ({ id: -(idx + 1), question_id: qId, label: o.label, position: o.position })),
+              }
+            : q
+        ),
+      };
+    });
+
     updateQuestionMutation.mutate({
-      questionId: selectedQuestion.id,
+      questionId: qId,
       data: {
         options,
       },
@@ -207,8 +300,17 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
 
   // Endings update
   const handleUpdateEndings = (title: string, message: string) => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
+    queryClient.setQueryData(["forms", formId], (old: FormDetail | undefined) => {
+      if (!old) return old;
+      return {
+        ...old,
+        thank_you_title: title,
+        thank_you_message: message,
+      };
+    });
+
+    if (endingsTimerRef.current) clearTimeout(endingsTimerRef.current);
+    endingsTimerRef.current = setTimeout(() => {
       updateFormMutation.mutate({
         thank_you_title: title,
         thank_you_message: message,
@@ -218,14 +320,27 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
 
   // Welcome screen update
   const handleUpdateWelcome = (title: string, description: string) => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
+    queryClient.setQueryData(["forms", formId], (old: FormDetail | undefined) => {
+      if (!old) return old;
+      return {
+        ...old,
+        welcome_screen: {
+          enabled: true,
+          title,
+          description,
+          button_text: old.welcome_screen?.button_text || "Start",
+        },
+      };
+    });
+
+    if (welcomeTimerRef.current) clearTimeout(welcomeTimerRef.current);
+    welcomeTimerRef.current = setTimeout(() => {
       updateFormMutation.mutate({
         welcome_screen: {
           enabled: true,
           title,
           description,
-          button_text: form.welcome_screen?.button_text || "Start",
+          button_text: form?.welcome_screen?.button_text || "Start",
         },
       });
     }, 400);

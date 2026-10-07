@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Plus,
   Palette,
@@ -47,6 +47,21 @@ export function CenterCanvas({
   isWelcomeSelected,
   onUpdateWelcome,
 }: CenterCanvasProps) {
+  // Local state mirror for smooth typing without dropped characters
+  const [prevQuestionId, setPrevQuestionId] = useState<number | null>(question?.id ?? null);
+  const [localTitle, setLocalTitle] = useState(question?.title || "");
+  const [localDesc, setLocalDesc] = useState(question?.description || "");
+
+  if (question && question.id !== prevQuestionId) {
+    setPrevQuestionId(question.id);
+    setLocalTitle(question.title);
+    setLocalDesc(question.description || "");
+  } else if (!question && prevQuestionId !== null) {
+    setPrevQuestionId(null);
+    setLocalTitle("");
+    setLocalDesc("");
+  }
+
   // Render live answer component in canvas
   const renderAnswerPreview = () => {
     if (!question) return null;
@@ -307,10 +322,12 @@ export function CenterCanvas({
                     {/* Inline Editable Question Title */}
                     <input
                       type="text"
-                      value={question.title}
-                      onChange={(e) =>
-                        onUpdateQuestion({ title: e.target.value })
-                      }
+                      value={localTitle}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setLocalTitle(val);
+                        onUpdateQuestion({ title: val });
+                      }}
                       placeholder="Type your question here..."
                       className="w-full text-2xl md:text-[28px] font-normal text-[var(--text-primary)] border-b border-transparent hover:border-[var(--border-strong)] focus:border-[var(--primary)] pb-1 focus:outline-hidden leading-tight font-karla"
                     />
@@ -318,10 +335,12 @@ export function CenterCanvas({
                     {/* Inline Editable Description */}
                     <input
                       type="text"
-                      value={question.description || ""}
-                      onChange={(e) =>
-                        onUpdateQuestion({ description: e.target.value })
-                      }
+                      value={localDesc}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setLocalDesc(val);
+                        onUpdateQuestion({ description: val });
+                      }}
                       placeholder="Description (optional)"
                       className="w-full text-sm text-[var(--text-secondary)] italic border-b border-transparent hover:border-[var(--border-strong)] focus:border-[var(--primary)] pb-0.5 focus:outline-hidden font-karla"
                     />

@@ -607,3 +607,39 @@ def test_rating_summary_dynamic_max_rating(client: TestClient):
     assert q_sum["distribution"]["10"] == 1
 
 
+def test_change_type_clears_options(client: TestClient):
+    # 1. Create form
+    f_res = client.post("/api/forms", json={"title": "Type Change Test"})
+    assert f_res.status_code == 201
+    form_id = f_res.json()["id"]
+
+    # 2. Create multiple choice question with 2 options
+    q_res = client.post(
+        f"/api/forms/{form_id}/questions",
+        json={
+            "type": "multiple_choice",
+            "title": "Pick one",
+            "options": [{"label": "A", "position": 0}, {"label": "B", "position": 1}],
+        },
+    )
+    assert q_res.status_code == 201
+    q_id = q_res.json()["id"]
+    assert len(q_res.json()["options"]) == 2
+
+    # 3. Patch type to short_text without providing options payload
+    patch_res = client.patch(
+        f"/api/questions/{q_id}",
+        json={"type": "short_text"},
+    )
+    assert patch_res.status_code == 200
+    assert patch_res.json()["type"] == "short_text"
+    assert len(patch_res.json()["options"]) == 0
+
+    # 4. Fetch form directly and verify options table has 0 options for this question
+    get_res = client.get(f"/api/forms/{form_id}")
+    assert get_res.status_code == 200
+    fetched_q = next(q for q in get_res.json()["questions"] if q["id"] == q_id)
+    assert fetched_q["type"] == "short_text"
+    assert len(fetched_q["options"]) == 0
+
+

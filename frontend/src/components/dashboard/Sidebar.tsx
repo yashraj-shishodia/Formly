@@ -8,8 +8,6 @@ import {
   LayoutTemplate,
   Puzzle,
   Users2,
-  Palette,
-  ExternalLink,
   ChevronDown,
   X,
 } from "lucide-react";
@@ -169,20 +167,8 @@ export function Sidebar({
         </nav>
       </div>
 
-      {/* Bottom Section: Design System link & User Profile */}
-      <div className="p-4 border-t border-[#E6E6E8] space-y-3">
-        {/* Style Showcase link */}
-        <Link
-          href="/dev/style"
-          className="flex items-center justify-between px-3 py-2 bg-[#F5F5F5] hover:bg-[#EAEAEC] rounded-[8px] text-xs font-medium text-[#2B2530] transition-colors border border-[#E6E6E8]"
-        >
-          <div className="flex items-center gap-2">
-            <Palette className="w-3.5 h-3.5 text-[#8E4FC0]" />
-            <span>Design Tokens & Spec</span>
-          </div>
-          <ExternalLink className="w-3 h-3 text-[#6B6570]" />
-        </Link>
-
+      {/* Bottom Section: User Profile */}
+      <div className="p-4 border-t border-[#E6E6E8]">
         {/* User Profile Card */}
         <div className="flex items-center justify-between px-2 py-1.5">
           <div className="flex items-center gap-2.5 truncate">

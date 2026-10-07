@@ -232,7 +232,6 @@ npm run dev
 - Forms Builder: `http://localhost:3000/forms/1/edit`
 - Respondent Flow: `http://localhost:3000/f/customer-satisfaction-survey-csat`
 - Results Dashboard: `http://localhost:3000/forms/1/results`
-- Design Tokens Showcase: `http://localhost:3000/dev/style`
 
 ---
 

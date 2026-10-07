@@ -75,6 +75,7 @@ export interface QuestionCreate {
 }
 
 export interface QuestionUpdate {
+  type?: QuestionType;
   title?: string;
   description?: string | null;
   required?: boolean;

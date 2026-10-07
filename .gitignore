@@ -10,6 +10,8 @@ venv/
 *.db
 *.sqlite3
 .pytest_cache/
+uploads/
+backend/uploads/
 
 # Node
 node_modules/

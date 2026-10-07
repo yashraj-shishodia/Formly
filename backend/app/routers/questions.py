@@ -16,6 +16,8 @@ from app.schemas import (
 
 router = APIRouter(tags=["Questions"])
 
+DEFAULT_MAX_RATING = 5
+
 DEFAULT_TITLES = {
     QuestionType.SHORT_TEXT: "What is your name?",
     QuestionType.LONG_TEXT: "Can you provide more details?",
@@ -64,7 +66,7 @@ def add_question(
     # Default settings for rating
     settings_json = payload.settings_json
     if not settings_json and payload.type == QuestionType.RATING:
-        settings_json = json.dumps({"max_rating": 5})
+        settings_json = json.dumps({"max_rating": DEFAULT_MAX_RATING})
 
     question = Question(
         form_id=form_id,
@@ -125,6 +127,15 @@ def update_question(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Question with id {question_id} not found",
         )
+
+    if payload.type is not None and payload.type.value != question.type:
+        question.type = payload.type.value
+        if (
+            payload.type == QuestionType.RATING
+            and (not question.settings_json or question.settings_json.strip() in ("", "{}"))
+            and payload.settings_json is None
+        ):
+            question.settings_json = json.dumps({"max_rating": DEFAULT_MAX_RATING})
 
     if payload.title is not None:
         question.title = payload.title.strip() or "Untitled Question"

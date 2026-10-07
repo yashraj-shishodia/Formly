@@ -41,9 +41,7 @@ export default function NewFormPage() {
       return;
     }
 
-    toast.info("Formly AI: Creating your form...", {
-      description: cleanPrompt,
-    });
+    toast.info("AI generation is a placeholder (Coming Soon). A blank form was created from your prompt.");
 
     try {
       const newForm = await createMutation.mutateAsync({

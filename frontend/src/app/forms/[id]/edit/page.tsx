@@ -144,6 +144,7 @@ export default function FormBuilderPage({ params }: BuilderPageProps) {
     updateQuestionMutation.mutate({
       questionId: selectedQuestion.id,
       data: {
+        type,
         options: defaultOptions,
       },
     });

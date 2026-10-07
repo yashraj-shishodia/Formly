@@ -94,6 +94,7 @@ class QuestionCreate(BaseSchema):
 
 
 class QuestionUpdate(BaseSchema):
+    type: Optional[QuestionType] = None
     title: Optional[str] = None
     description: Optional[str] = None
     required: Optional[bool] = None

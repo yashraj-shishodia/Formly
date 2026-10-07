@@ -288,3 +288,43 @@ def test_all_eight_question_types_flow(client):
     # Delete response
     del_resp = client.delete(f"/api/responses/{resp_id}")
     assert del_resp.status_code == 200
+
+
+def test_change_question_type_persists(client):
+    # 1. Create form
+    f_res = client.post("/api/forms", json={"title": "Type Change Test"})
+    assert f_res.status_code == 201
+    form_id = f_res.json()["id"]
+
+    # 2. Add short_text question
+    q_res = client.post(
+        f"/api/forms/{form_id}/questions",
+        json={"type": "short_text", "title": "Change Me", "required": False},
+    )
+    assert q_res.status_code == 201
+    q_data = q_res.json()
+    q_id = q_data["id"]
+    assert q_data["type"] == "short_text"
+
+    # 3. PATCH type short_text -> rating
+    patch_res = client.patch(
+        f"/api/questions/{q_id}",
+        json={"type": "rating"},
+    )
+    assert patch_res.status_code == 200
+    patched = patch_res.json()
+    assert patched["type"] == "rating"
+    assert patched["settings_json"] is not None
+    settings = json.loads(patched["settings_json"])
+    assert "max_rating" in settings
+    assert settings["max_rating"] == 5
+
+    # 4. Fresh GET on form and verify persistence
+    get_res = client.get(f"/api/forms/{form_id}")
+    assert get_res.status_code == 200
+    fresh_questions = get_res.json()["questions"]
+    target_q = next(q for q in fresh_questions if q["id"] == q_id)
+    assert target_q["type"] == "rating"
+    assert target_q["settings_json"] is not None
+    fresh_settings = json.loads(target_q["settings_json"])
+    assert fresh_settings.get("max_rating") == 5

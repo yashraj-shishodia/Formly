@@ -257,6 +257,7 @@ export interface QuestionSummary {
   title: string;
   total_answers: number;
   option_stats?: QuestionOptionStat[] | null;
+  max_rating?: number | null;
   average?: number | null;
   min_value?: number | null;
   max_value?: number | null;

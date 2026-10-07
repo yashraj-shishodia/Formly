@@ -484,3 +484,162 @@ def test_partial_response_tracking(client):
     assert summary["partial_responses"] == 1
     assert summary["completion_rate"] == 50.0
 
+
+def test_multiselect_contract_and_summary_count(client):
+    # 1. Create form
+    f_res = client.post("/api/forms", json={"title": "Multi-Select Form"})
+    assert f_res.status_code == 201
+    form_id = f_res.json()["id"]
+
+    # 2. Add multiple choice question with allow_multiple
+    q_res = client.post(
+        f"/api/forms/{form_id}/questions",
+        json={
+            "type": "multiple_choice",
+            "title": "Select your favorite tools",
+            "required": True,
+            "settings_json": json.dumps({"allow_multiple": True}),
+            "options": [
+                {"label": "React", "position": 0},
+                {"label": "FastAPI", "position": 1},
+                {"label": "Next.js", "position": 2},
+            ],
+        },
+    )
+    assert q_res.status_code == 201
+    q_id = q_res.json()["id"]
+
+    # 3. Publish form
+    pub_res = client.post(f"/api/forms/{form_id}/publish")
+    assert pub_res.status_code == 200
+    slug = pub_res.json()["slug"]
+
+    # 4. Submit 2 choices via value_json (value_text=None)
+    sub1 = client.post(
+        f"/api/public/forms/{slug}/responses",
+        json={
+            "answers": [
+                {
+                    "question_id": q_id,
+                    "value_text": None,
+                    "value_json": json.dumps(["React", "FastAPI"]),
+                }
+            ]
+        },
+    )
+    assert sub1.status_code == 201
+
+    # 5. Check summary counts each choice separately
+    sum_res = client.get(f"/api/forms/{form_id}/summary")
+    assert sum_res.status_code == 200
+    q_stats = sum_res.json()["questions"][0]["option_stats"]
+    stats_dict = {s["label"]: s["count"] for s in q_stats}
+    assert stats_dict["React"] == 1
+    assert stats_dict["FastAPI"] == 1
+    assert stats_dict["Next.js"] == 0
+
+    # 6. Submit single choice response via value_text (value_json=None)
+    sub2 = client.post(
+        f"/api/public/forms/{slug}/responses",
+        json={
+            "answers": [
+                {
+                    "question_id": q_id,
+                    "value_text": "Next.js",
+                    "value_json": None,
+                }
+            ]
+        },
+    )
+    assert sub2.status_code == 201
+
+    # Check updated summary
+    sum2_res = client.get(f"/api/forms/{form_id}/summary")
+    assert sum2_res.status_code == 200
+    q2_stats = sum2_res.json()["questions"][0]["option_stats"]
+    stats2_dict = {s["label"]: s["count"] for s in q2_stats}
+    assert stats2_dict["React"] == 1
+    assert stats2_dict["FastAPI"] == 1
+    assert stats2_dict["Next.js"] == 1
+
+
+def test_rating_summary_dynamic_max_rating(client: TestClient):
+    # 1. Create form
+    f_res = client.post("/api/forms", json={"title": "NPS Form"})
+    assert f_res.status_code == 201
+    form_id = f_res.json()["id"]
+
+    # 2. Add rating question with max_rating = 10
+    q_res = client.post(
+        f"/api/forms/{form_id}/questions",
+        json={
+            "type": "rating",
+            "title": "Rate your experience out of 10",
+            "required": True,
+            "settings_json": json.dumps({"max_rating": 10}),
+        },
+    )
+    assert q_res.status_code == 201
+    q_id = q_res.json()["id"]
+
+    # 3. Publish form
+    pub_res = client.post(f"/api/forms/{form_id}/publish")
+    assert pub_res.status_code == 200
+    slug = pub_res.json()["slug"]
+
+    # 4. Submit responses
+    client.post(
+        f"/api/public/forms/{slug}/responses",
+        json={"answers": [{"question_id": q_id, "value_number": 8}]},
+    )
+    client.post(
+        f"/api/public/forms/{slug}/responses",
+        json={"answers": [{"question_id": q_id, "value_number": 10}]},
+    )
+
+    # 5. Check summary has max_rating = 10, average = 9.0
+    sum_res = client.get(f"/api/forms/{form_id}/summary")
+    assert sum_res.status_code == 200
+    q_sum = sum_res.json()["questions"][0]
+    assert q_sum["max_rating"] == 10
+    assert q_sum["average"] == 9.0
+    assert q_sum["distribution"]["8"] == 1
+    assert q_sum["distribution"]["10"] == 1
+
+
+def test_change_type_clears_options(client: TestClient):
+    # 1. Create form
+    f_res = client.post("/api/forms", json={"title": "Type Change Test"})
+    assert f_res.status_code == 201
+    form_id = f_res.json()["id"]
+
+    # 2. Create multiple choice question with 2 options
+    q_res = client.post(
+        f"/api/forms/{form_id}/questions",
+        json={
+            "type": "multiple_choice",
+            "title": "Pick one",
+            "options": [{"label": "A", "position": 0}, {"label": "B", "position": 1}],
+        },
+    )
+    assert q_res.status_code == 201
+    q_id = q_res.json()["id"]
+    assert len(q_res.json()["options"]) == 2
+
+    # 3. Patch type to short_text without providing options payload
+    patch_res = client.patch(
+        f"/api/questions/{q_id}",
+        json={"type": "short_text"},
+    )
+    assert patch_res.status_code == 200
+    assert patch_res.json()["type"] == "short_text"
+    assert len(patch_res.json()["options"]) == 0
+
+    # 4. Fetch form directly and verify options table has 0 options for this question
+    get_res = client.get(f"/api/forms/{form_id}")
+    assert get_res.status_code == 200
+    fetched_q = next(q for q in get_res.json()["questions"] if q["id"] == q_id)
+    assert fetched_q["type"] == "short_text"
+    assert len(fetched_q["options"]) == 0
+
+

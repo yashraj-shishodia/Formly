@@ -304,6 +304,7 @@ class QuestionSummary(BaseSchema):
     # For multiple choice & dropdown
     option_stats: Optional[List[QuestionOptionStat]] = None
     # For rating & number
+    max_rating: Optional[int] = None
     average: Optional[float] = None
     min_value: Optional[float] = None
     max_value: Optional[float] = None

@@ -331,11 +331,12 @@ export function FormRunner({
   const progressPercent = useMemo(() => {
     if (questions.length === 0) return 0;
     if (screen === "thankyou" || isSubmitStep) return 100;
-    return Math.min(
-      95,
-      Math.round((history.length / Math.max(questions.length, history.length)) * 100)
+    const visitedCount = new Set([...history, currentIndex]).size;
+    return Math.max(
+      5,
+      Math.min(95, Math.round((visitedCount / questions.length) * 100))
     );
-  }, [history.length, isSubmitStep, questions.length, screen]);
+  }, [history, currentIndex, isSubmitStep, questions.length, screen]);
 
   // Render question input component based on type
   const renderInput = () => {
@@ -556,13 +557,29 @@ export function FormRunner({
           </div>
         )}
 
-        {/* Top questions counter */}
+        {/* Top questions counter and logic jump hint */}
         {screen === "question" && questions.length > 0 && (
           <div
-            className="text-xs font-medium select-none"
-            style={{ color: "var(--form-text, #2B2530)", opacity: 0.75 }}
+            className="text-xs font-medium select-none flex items-center gap-2 flex-wrap"
+            style={{ color: "var(--form-text, #2B2530)", opacity: 0.85 }}
           >
-            {currentIndex + 1} of {questions.length} answered
+            <span>
+              Question {currentIndex + 1} of {questions.length}
+            </span>
+            {matchingRule && (
+              <span className="text-[11px] font-normal px-2 py-0.5 rounded-full bg-black/5 border border-black/10 text-[var(--form-text, #2B2530)] inline-flex items-center gap-1">
+                {isJumpToEnd
+                  ? "→ Jumps to submit"
+                  : (() => {
+                      const targetQ = questions.find(
+                        (q) => q.id === matchingRule.target_question_id
+                      );
+                      return targetQ
+                        ? `→ Jumps to question ${targetQ.position + 1}`
+                        : "→ Jumps forward";
+                    })()}
+              </span>
+            )}
           </div>
         )}
 

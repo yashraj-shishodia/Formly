@@ -42,11 +42,12 @@ cors_origins_str = os.getenv(
     "CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
 )
 origins = [origin.strip() for origin in cors_origins_str.split(",") if origin.strip()]
+has_wildcard = "*" in origins
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins if origins else ["*"],
-    allow_credentials=True,
+    allow_origins=["*"] if has_wildcard else (origins if origins else ["http://localhost:3000", "http://127.0.0.1:3000"]),
+    allow_credentials=not has_wildcard,
     allow_methods=["*"],
     allow_headers=["*"],
 )

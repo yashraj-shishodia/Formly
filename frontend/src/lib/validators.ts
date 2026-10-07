@@ -224,7 +224,7 @@ export function formatAnswerPayload(
       if (Array.isArray(value)) {
         return {
           question_id: question.id,
-          value_text: value.join(", "),
+          value_text: null,
           value_number: null,
           value_json: JSON.stringify(value),
         };
@@ -233,7 +233,7 @@ export function formatAnswerPayload(
         question_id: question.id,
         value_text: String(value),
         value_number: null,
-        value_json: JSON.stringify([String(value)]),
+        value_json: null,
       };
     }
 

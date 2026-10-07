@@ -6,6 +6,8 @@ import { api, ApiError } from "@/lib/api";
 import {
   FormCreate,
   FormUpdate,
+  FormDetail,
+  Question,
   QuestionCreate,
   QuestionUpdate,
   ResponseSubmit,
@@ -139,10 +141,17 @@ export function useUpdateQuestion(formId: number) {
   return useMutation({
     mutationFn: ({ questionId, data }: { questionId: number; data: QuestionUpdate }) =>
       api.updateQuestion(questionId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["forms", formId] });
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["forms", formId], (old: FormDetail | undefined) => {
+        if (!old) return old;
+        return {
+          ...old,
+          questions: old.questions.map((q) => (q.id === updated.id ? updated : q)),
+        };
+      });
     },
     onError: (err: ApiError) => {
+      queryClient.invalidateQueries({ queryKey: ["forms", formId] });
       toast.error(err.message || "Failed to update question");
     },
   });
@@ -166,11 +175,35 @@ export function useReorderQuestions(formId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (questionIds: number[]) => api.reorderQuestions(formId, questionIds),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["forms", formId] });
+    onMutate: async (questionIds: number[]) => {
+      await queryClient.cancelQueries({ queryKey: ["forms", formId] });
+      const previousForm = queryClient.getQueryData<FormDetail>(["forms", formId]);
+
+      if (previousForm) {
+        const idToQuestion = new Map(previousForm.questions.map((q) => [q.id, q]));
+        const reorderedQuestions = questionIds
+          .map((id, index) => {
+            const q = idToQuestion.get(id);
+            return q ? { ...q, position: index } : null;
+          })
+          .filter((q): q is Question => q !== null);
+
+        queryClient.setQueryData<FormDetail>(["forms", formId], {
+          ...previousForm,
+          questions: reorderedQuestions,
+        });
+      }
+
+      return { previousForm };
     },
-    onError: (err: ApiError) => {
+    onError: (err: ApiError, _newOrder, context) => {
+      if (context?.previousForm) {
+        queryClient.setQueryData(["forms", formId], context.previousForm);
+      }
       toast.error(err.message || "Failed to update order");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["forms", formId] });
     },
   });
 }

@@ -57,8 +57,12 @@ export function DropdownInput({
         className="w-full flex items-center justify-between px-4 py-3 bg-[#E0E0E2] hover:bg-[#D4D2D6] rounded-[4px] border border-[#C5C3C8] text-left transition-colors cursor-pointer select-none"
       >
         <span
-          className={`text-[17px] font-karla truncate ${
-            value ? "text-[#2B2530] font-medium" : "text-[#6B6570]"
+          style={{
+            color: "var(--form-text, #2B2530)",
+            fontFamily: "var(--form-font, var(--font-karla))",
+          }}
+          className={`text-[17px] truncate ${
+            value ? "font-medium" : "opacity-70"
           }`}
         >
           {value || "Select an option..."}
@@ -102,10 +106,16 @@ export function DropdownInput({
                     key={opt.id}
                     type="button"
                     onClick={() => handleSelect(opt.label)}
-                    className={`w-full flex items-center justify-between px-4 py-2.5 text-sm text-left font-karla transition-colors ${
+                    style={{
+                      fontFamily: "var(--form-font, var(--font-karla))",
+                      color: isSelected
+                        ? "var(--form-button, #2B2530)"
+                        : "var(--form-text, #2B2530)",
+                    }}
+                    className={`w-full flex items-center justify-between px-4 py-2.5 text-sm text-left transition-colors ${
                       isSelected
-                        ? "bg-[#F5F5F5] text-[#2B2530] font-semibold"
-                        : "text-[#2B2530] hover:bg-[#FAFAFA]"
+                        ? "bg-[#F5F5F5] font-semibold"
+                        : "hover:bg-[#FAFAFA]"
                     }`}
                   >
                     <span className="truncate">{opt.label}</span>

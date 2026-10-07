@@ -42,10 +42,23 @@ export function ThankYouScreen({
       </motion.div>
 
       <div className="space-y-3">
-        <h1 className="text-3xl md:text-4xl font-normal text-[#2B2530] tracking-tight font-karla leading-tight">
+        <h1
+          className="text-3xl md:text-4xl font-normal tracking-tight leading-tight"
+          style={{
+            color: "var(--form-text, #2B2530)",
+            fontFamily: "var(--form-font, var(--font-karla))",
+          }}
+        >
           {title || "Thank you!"}
         </h1>
-        <p className="text-base md:text-lg text-[#6B6570] font-karla leading-relaxed max-w-md mx-auto">
+        <p
+          className="text-base md:text-lg leading-relaxed max-w-md mx-auto"
+          style={{
+            color: "var(--form-text, #2B2530)",
+            opacity: 0.75,
+            fontFamily: "var(--form-font, var(--font-karla))",
+          }}
+        >
           {message || "Your response has been recorded."}
         </p>
       </div>
@@ -53,7 +66,15 @@ export function ThankYouScreen({
       {buttonText && buttonUrl && (
         <div className="pt-3">
           <Link href={buttonUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="primary" size="lg" className="gap-2">
+            <Button
+              variant="primary"
+              size="lg"
+              style={{
+                backgroundColor: "var(--form-button, #2B2530)",
+                color: "var(--form-button-text, #FFFFFF)",
+              }}
+              className="gap-2 border-0 hover:opacity-90"
+            >
               <span>{buttonText}</span>
               <ArrowRight className="w-4 h-4" />
             </Button>

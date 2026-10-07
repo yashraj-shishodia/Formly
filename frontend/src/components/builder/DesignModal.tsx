@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { ThemeConfig } from "@/lib/types";
+import { ALLOWED_FONT_LIST } from "@/lib/tokens";
 
 interface DesignModalProps {
   isOpen: boolean;
@@ -58,9 +59,11 @@ export function DesignModal({
             onChange={(e) => setTheme({ ...theme, font: e.target.value })}
             className="w-full bg-white border border-[#E6E6E8] rounded-[8px] px-3 py-2 text-sm text-[#2B2530] focus:outline-hidden focus:border-[#2B2530]"
           >
-            <option value="Karla">Karla (Humanist Rounded - Default)</option>
-            <option value="Inter">Inter (Neo-grotesque UI)</option>
-            <option value="sans-serif">System Sans-Serif</option>
+            {ALLOWED_FONT_LIST.map((f) => (
+              <option key={f.name} value={f.name}>
+                {f.label}
+              </option>
+            ))}
           </select>
         </div>
 

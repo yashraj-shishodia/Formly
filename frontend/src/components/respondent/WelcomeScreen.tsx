@@ -36,11 +36,24 @@ export function WelcomeScreen({
       </div>
 
       <div className="space-y-3">
-        <h1 className="text-3xl md:text-4xl font-normal text-[#2B2530] tracking-tight font-karla leading-tight">
+        <h1
+          className="text-3xl md:text-4xl font-normal tracking-tight leading-tight"
+          style={{
+            color: "var(--form-text, #2B2530)",
+            fontFamily: "var(--form-font, var(--font-karla))",
+          }}
+        >
           {title}
         </h1>
         {description && (
-          <p className="text-base md:text-lg text-[#6B6570] font-karla leading-relaxed max-w-md mx-auto">
+          <p
+            className="text-base md:text-lg leading-relaxed max-w-md mx-auto"
+            style={{
+              color: "var(--form-text, #2B2530)",
+              opacity: 0.75,
+              fontFamily: "var(--form-font, var(--font-karla))",
+            }}
+          >
             {description}
           </p>
         )}
@@ -51,14 +64,21 @@ export function WelcomeScreen({
           variant="primary"
           size="lg"
           onClick={onStart}
-          className="text-lg font-medium px-8 py-3.5 rounded-[8px] bg-[#2B2530] hover:bg-[#3A3340] text-white shadow-xs"
+          style={{
+            backgroundColor: "var(--form-button, #2B2530)",
+            color: "var(--form-button-text, #FFFFFF)",
+          }}
+          className="text-lg font-medium px-8 py-3.5 rounded-[8px] hover:opacity-90 transition-opacity shadow-xs border-0"
         >
           {buttonText}
         </Button>
 
-        <span className="hidden sm:inline-flex items-center gap-1 text-xs text-[#6B6570] select-none">
-          press <strong className="font-semibold text-[#2B2530]">Enter</strong>
-          <CornerDownLeft className="w-3.5 h-3.5 text-[#6B6570]" />
+        <span
+          className="hidden sm:inline-flex items-center gap-1 text-xs select-none"
+          style={{ color: "var(--form-text, #2B2530)", opacity: 0.7 }}
+        >
+          press <strong className="font-semibold">Enter</strong>
+          <CornerDownLeft className="w-3.5 h-3.5 opacity-80" />
         </span>
       </div>
     </div>

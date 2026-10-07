@@ -27,6 +27,13 @@
   --radius-modal: 24px;
   --radius-row: 4px;
   --radius-badge: 5px;
+
+  /* Form Theme Tokens (Respondent side defaults) */
+  --form-bg: #EAEAEC;
+  --form-text: #2B2530;
+  --form-button: #2B2530;
+  --form-button-text: #FFFFFF;
+  --form-font: var(--font-karla), sans-serif;
 }
 
 body {

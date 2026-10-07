@@ -39,7 +39,12 @@ export function NumberInput({
           }
         }}
         placeholder={placeholder}
-        className="w-full bg-transparent border-b-2 border-[#D4D2D6] focus:border-[#2B2530] text-xl md:text-2xl text-[#2B2530] placeholder-[#A8A3AD] py-2.5 focus:outline-hidden transition-colors font-karla"
+        style={{
+          borderBottomColor: "var(--form-button, #D4D2D6)",
+          color: "var(--form-text, #2B2530)",
+          fontFamily: "var(--form-font, var(--font-karla))",
+        }}
+        className="w-full bg-transparent border-b-2 text-xl md:text-2xl placeholder-[#A8A3AD] py-2.5 focus:outline-hidden transition-colors"
       />
     </div>
   );

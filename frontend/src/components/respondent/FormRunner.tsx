@@ -12,6 +12,7 @@ import {
   formatAnswerPayload,
   RawAnswerValue,
 } from "@/lib/validators";
+import { resolveThemeFontCss } from "@/lib/tokens";
 import { QuestionShell } from "./QuestionShell";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { ThankYouScreen } from "./ThankYouScreen";
@@ -423,16 +424,37 @@ export function FormRunner({
     }
   };
 
+  const theme = form.theme;
+  const runnerStyle = {
+    "--form-bg": theme?.background_color || "#EAEAEC",
+    "--form-text": theme?.text_color || "#2B2530",
+    "--form-button": theme?.button_color || "#2B2530",
+    "--form-button-text": theme?.button_text_color || "#FFFFFF",
+    "--form-font": resolveThemeFontCss(theme?.font),
+  } as React.CSSProperties;
+
   return (
-    <div className="min-h-screen bg-white flex flex-col p-4 md:p-7 select-none relative font-karla">
+    <div
+      style={runnerStyle}
+      className="min-h-screen bg-white flex flex-col p-4 md:p-7 select-none relative font-[family-name:var(--form-font,var(--font-karla))]"
+    >
       {/* Top Header per DESIGN_SPEC §2 */}
       <header className="h-10 px-3 flex items-center justify-between mb-2">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="relative w-6 h-6 flex items-center justify-center">
-            <div className="absolute w-3 h-5 bg-[#2B2530] rounded-[2.5px] -left-0.5" />
-            <div className="absolute w-3 h-3 bg-[#2B2530]/80 rounded-[2.5px] -right-0.5 top-2" />
+            <div
+              className="absolute w-3 h-5 rounded-[2.5px] -left-0.5"
+              style={{ backgroundColor: "var(--form-text, #2B2530)" }}
+            />
+            <div
+              className="absolute w-3 h-3 opacity-80 rounded-[2.5px] -right-0.5 top-2"
+              style={{ backgroundColor: "var(--form-text, #2B2530)" }}
+            />
           </div>
-          <span className="font-bold text-base tracking-tight text-[#2B2530]">
+          <span
+            className="font-bold text-base tracking-tight"
+            style={{ color: "var(--form-text, #2B2530)" }}
+          >
             Formly
           </span>
         </Link>
@@ -455,13 +477,20 @@ export function FormRunner({
         )}
       </header>
 
-      {/* ONE Large Inset Rounded Canvas (#EAEAEC) per DESIGN_SPEC §2 */}
-      <div className="flex-1 bg-[#EAEAEC] rounded-[20px] relative overflow-hidden flex flex-col justify-between p-6 md:p-12 shadow-inner">
+      {/* ONE Large Inset Rounded Canvas per DESIGN_SPEC §2 */}
+      <div
+        className="flex-1 rounded-[20px] relative overflow-hidden flex flex-col justify-between p-6 md:p-12 shadow-inner transition-colors duration-200"
+        style={{
+          backgroundColor: "var(--form-bg, #EAEAEC)",
+          color: "var(--form-text, #2B2530)",
+        }}
+      >
         {/* Progress Bar at the top of canvas */}
         {screen === "question" && questions.length > 0 && (
-          <div className="absolute top-0 left-0 w-full h-1 bg-[#D4D2D6]">
+          <div className="absolute top-0 left-0 w-full h-1 bg-[#D4D2D6]/40">
             <motion.div
-              className="h-full bg-[#2B2530]"
+              className="h-full"
+              style={{ backgroundColor: "var(--form-button, #2B2530)" }}
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.3 }}
@@ -471,7 +500,10 @@ export function FormRunner({
 
         {/* Top questions counter */}
         {screen === "question" && questions.length > 0 && (
-          <div className="text-xs font-medium text-[#6B6570] select-none">
+          <div
+            className="text-xs font-medium select-none"
+            style={{ color: "var(--form-text, #2B2530)", opacity: 0.75 }}
+          >
             {currentIndex + 1} of {questions.length} answered
           </div>
         )}

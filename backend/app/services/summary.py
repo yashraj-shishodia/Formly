@@ -177,6 +177,18 @@ def calculate_form_summary(db: Session, form_id: int) -> FormSummary:
             ][:15]
             summary.recent_answers = recent
 
+        elif q_type == QuestionType.FILE_UPLOAD.value:
+            recent_filenames = []
+            for a in reversed(answers):
+                if a.value_json:
+                    try:
+                        data = json.loads(a.value_json)
+                        if isinstance(data, dict) and "original_name" in data:
+                            recent_filenames.append(data["original_name"])
+                    except Exception:
+                        pass
+            summary.recent_answers = recent_filenames[:15]
+
         question_summaries.append(summary)
 
     return FormSummary(

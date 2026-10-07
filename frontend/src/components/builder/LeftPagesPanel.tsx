@@ -35,6 +35,7 @@ import {
   Mail,
   Hash,
   Star,
+  Upload,
 } from "lucide-react";
 import { Question, QuestionType } from "@/lib/types";
 
@@ -72,6 +73,8 @@ function getQuestionIcon(type: QuestionType) {
       return { icon: Hash, bg: "bg-[#FEF6E6]", color: "text-[#B25E00]" };
     case "rating":
       return { icon: Star, bg: "bg-[#E6F4EA]", color: "text-[#2F7D69]" };
+    case "file_upload":
+      return { icon: Upload, bg: "bg-[#FEF6E6]", color: "text-[#B25E00]" };
     default:
       return { icon: Type, bg: "bg-[#E1F0FF]", color: "text-[#0066CC]" };
   }

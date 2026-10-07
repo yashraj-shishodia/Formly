@@ -248,6 +248,12 @@ class ResponseProgressResponse(BaseSchema):
     response_id: int
 
 
+class UploadedFileResponse(BaseSchema):
+    file_id: int
+    original_name: str
+    size_bytes: int
+
+
 class AnswerResponse(BaseSchema):
     id: int
     question_id: int

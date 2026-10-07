@@ -7,6 +7,7 @@ import {
   Play,
   Check,
   Loader2,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Question, FormDetail } from "@/lib/types";
@@ -140,6 +141,21 @@ export function CenterCanvas({
             value=""
             onChange={() => {}}
           />
+        );
+
+      case "file_upload":
+        return (
+          <div className="w-full max-w-md p-6 rounded-[12px] border-2 border-dashed border-[var(--border)] bg-[var(--surface-inner)] flex flex-col items-center justify-center text-center">
+            <div className="w-10 h-10 rounded-full bg-[var(--primary)] text-white flex items-center justify-center mb-2">
+              <Upload className="w-5 h-5" />
+            </div>
+            <p className="text-xs font-semibold text-[var(--text-primary)]">
+              Choose file or drag here
+            </p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
+              Files up to 10MB supported
+            </p>
+          </div>
         );
 
       default:

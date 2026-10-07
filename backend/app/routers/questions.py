@@ -45,6 +45,7 @@ DEFAULT_TITLES = {
     QuestionType.NUMBER: "What is your budget / age?",
     QuestionType.YES_NO: "Do you agree with the terms?",
     QuestionType.RATING: "How would you rate your experience?",
+    QuestionType.FILE_UPLOAD: "Upload your document or file",
 }
 
 

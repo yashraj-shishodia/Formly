@@ -14,6 +14,8 @@ import {
   ToggleLeft,
   Mail,
   Hash,
+  Upload,
+  Paperclip,
 } from "lucide-react";
 import { useFormSummary } from "@/hooks/useForms";
 import { QuestionType } from "@/lib/types";
@@ -50,6 +52,8 @@ function getQuestionTypeBadge(type: QuestionType) {
       return { label: "Number", icon: Hash, bg: "bg-[#FEF6E6]", color: "text-[#B25E00]" };
     case "rating":
       return { label: "Rating", icon: Star, bg: "bg-[#E6F4EA]", color: "text-[#2F7D69]" };
+    case "file_upload":
+      return { label: "File Upload", icon: Upload, bg: "bg-[#F3EAFB]", color: "text-[#8E4FC0]" };
     default:
       return { label: type, icon: Type, bg: "bg-[#E1F0FF]", color: "text-[#0066CC]" };
   }
@@ -337,6 +341,39 @@ export function SummaryView({ formId }: SummaryViewProps) {
                       </div>
                     ) : (
                       <p className="text-xs text-[var(--text-muted)]">No answers recorded yet</p>
+                    )}
+                  </div>
+                )}
+
+                {/* File Upload: Count of files received & recent files */}
+                {q.type === "file_upload" && (
+                  <div className="space-y-3 pt-1">
+                    <div className="p-4 bg-[var(--surface-inner)] rounded-[12px] border border-[var(--border)] w-fit flex items-center gap-3">
+                      <div className="text-3xl font-bold text-[var(--text-primary)]">
+                        {q.total_answers}
+                      </div>
+                      <span className="text-xs text-[var(--text-secondary)] font-medium">
+                        {q.total_answers === 1 ? "file received" : "files received"}
+                      </span>
+                    </div>
+
+                    {q.recent_answers && q.recent_answers.length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
+                          Latest uploaded files
+                        </span>
+                        <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+                          {q.recent_answers.map((fileName, i) => (
+                            <div
+                              key={i}
+                              className="p-2.5 bg-[var(--surface-inner)] rounded-[8px] border border-[var(--border)] text-xs text-[var(--text-primary)] flex items-center gap-2"
+                            >
+                              <Paperclip className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
+                              <span className="truncate">{fileName}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}

@@ -7,6 +7,8 @@ export type RawAnswerValue =
   | number
   | boolean
   | string[]
+  | { file_id: number; original_name: string; size_bytes?: number }
+  | Record<string, unknown>
   | null
   | undefined;
 
@@ -19,6 +21,10 @@ export function isAnswerEmpty(val: RawAnswerValue): boolean {
   if (typeof val === "number") return isNaN(val);
   if (typeof val === "boolean") return false;
   if (Array.isArray(val)) return val.length === 0;
+  if (typeof val === "object") {
+    if ("file_id" in val && (val as { file_id: unknown }).file_id) return false;
+    return Object.keys(val).length === 0;
+  }
   return false;
 }
 
@@ -139,6 +145,24 @@ export function validateQuestionAnswer(
       return null;
     }
 
+    case "file_upload": {
+      if (typeof value === "object" && value !== null && "file_id" in value) {
+        return null;
+      }
+      if (typeof value === "string" && value.trim()) {
+        try {
+          const parsed = JSON.parse(value);
+          if (parsed && typeof parsed === "object" && "file_id" in parsed) {
+            return null;
+          }
+        } catch {
+          // not JSON string
+        }
+        return null;
+      }
+      return "Please select a file to upload.";
+    }
+
     default:
       return null;
   }
@@ -210,6 +234,48 @@ export function formatAnswerPayload(
         value_text: String(value),
         value_number: null,
         value_json: JSON.stringify([String(value)]),
+      };
+    }
+
+    case "file_upload": {
+      if (typeof value === "object" && value !== null && "file_id" in value) {
+        const fileObj = value as { file_id: number; original_name: string };
+        return {
+          question_id: question.id,
+          value_text: fileObj.original_name,
+          value_number: null,
+          value_json: JSON.stringify({
+            file_id: fileObj.file_id,
+            original_name: fileObj.original_name,
+          }),
+        };
+      }
+      if (typeof value === "string") {
+        try {
+          const parsed = JSON.parse(value);
+          if (parsed && typeof parsed === "object" && "file_id" in parsed) {
+            return {
+              question_id: question.id,
+              value_text: parsed.original_name || "Uploaded file",
+              value_number: null,
+              value_json: value,
+            };
+          }
+        } catch {
+          // not json
+        }
+        return {
+          question_id: question.id,
+          value_text: String(value),
+          value_number: null,
+          value_json: null,
+        };
+      }
+      return {
+        question_id: question.id,
+        value_text: null,
+        value_number: null,
+        value_json: null,
       };
     }
 

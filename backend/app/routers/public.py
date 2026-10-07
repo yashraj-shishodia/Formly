@@ -1,6 +1,6 @@
 import json
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -13,9 +13,11 @@ from app.schemas import (
     ResponseProgressSubmit,
     ResponseSubmit,
     ThemeConfig,
+    UploadedFileResponse,
     WelcomeScreenConfig,
 )
 from app.services.logic import evaluate_logic_path
+from app.services.uploads import process_and_save_upload
 from app.services.validation import is_answer_empty, validate_answer
 
 router = APIRouter(prefix="/api/public", tags=["Public Respondent Flow"])
@@ -88,6 +90,35 @@ def get_public_form(slug: str, db: Session = Depends(get_db)):
     )
 
 
+@router.post(
+    "/forms/{slug}/uploads",
+    response_model=UploadedFileResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_form_file(
+    slug: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    form = (
+        db.query(Form)
+        .filter(Form.slug == slug, Form.status == FormStatus.PUBLISHED.value)
+        .first()
+    )
+    if not form:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Form not found or currently unavailable.",
+        )
+
+    uploaded_record = await process_and_save_upload(file=file, form_id=form.id, db=db)
+    return UploadedFileResponse(
+        file_id=uploaded_record.id,
+        original_name=uploaded_record.original_name,
+        size_bytes=uploaded_record.size_bytes,
+    )
+
+
 @router.post("/forms/{slug}/responses/progress", response_model=ResponseProgressResponse)
 def track_response_progress(
     slug: str,
@@ -128,7 +159,7 @@ def track_response_progress(
     for ans in payload.answers:
         q = questions_by_id.get(ans.question_id)
         if q and not is_answer_empty(ans):
-            err = validate_answer(q, ans, enforce_required=False)
+            err = validate_answer(q, ans, enforce_required=False, db=db)
             if err:
                 field_errors[str(q.id)] = err
 
@@ -237,7 +268,7 @@ def submit_public_response(
     field_errors = {}
     for question in visited_questions:
         ans = answers_by_qid.get(question.id)
-        err = validate_answer(question, ans)
+        err = validate_answer(question, ans, enforce_required=True, db=db)
         if err:
             field_errors[str(question.id)] = err
 

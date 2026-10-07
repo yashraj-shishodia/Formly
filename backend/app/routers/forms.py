@@ -26,6 +26,7 @@ from app.schemas import (
     WelcomeScreenConfig,
 )
 from app.services.slug import generate_unique_slug
+from app.services.uploads import delete_file_from_disk
 
 router = APIRouter(prefix="/api/forms", tags=["Forms"])
 
@@ -205,8 +206,11 @@ def delete_form(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Form with id {form_id} not found",
         )
+    files_to_delete = [f.stored_name for f in form.uploaded_files]
     db.delete(form)
     db.commit()
+    for stored_name in files_to_delete:
+        delete_file_from_disk(stored_name)
     return {"message": f"Form {form_id} deleted successfully"}
 
 

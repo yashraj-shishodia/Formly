@@ -226,4 +226,41 @@ export const api = {
 
   getCsvExportUrl: (formId: number) =>
     `${API_BASE}/api/forms/${formId}/responses/export.csv`,
+
+  // File Uploads
+  uploadPublicFile: async (
+    slug: string,
+    file: File
+  ): Promise<{ file_id: number; original_name: string; size_bytes: number }> => {
+    const url = `${API_BASE}/api/public/forms/${slug}/uploads`;
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(url, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      let errorData: unknown;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = await response.text();
+      }
+      const message =
+        typeof errorData === "object" &&
+        errorData !== null &&
+        "detail" in errorData &&
+        typeof (errorData as { detail: unknown }).detail === "string"
+          ? (errorData as { detail: string }).detail
+          : `Upload failed with status ${response.status}`;
+      throw new ApiError(response.status, message, errorData);
+    }
+
+    return response.json();
+  },
+
+  getFileDownloadUrl: (fileId: number) =>
+    `${API_BASE}/api/files/${fileId}`,
 };

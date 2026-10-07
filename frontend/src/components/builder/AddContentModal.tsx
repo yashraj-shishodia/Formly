@@ -125,13 +125,12 @@ const FORM_ELEMENTS: ElementItem[] = [
   },
   {
     id: "file_upload",
+    type: "file_upload",
     label: "File Upload",
     category: "Other",
     icon: Upload,
     iconBg: "bg-[#FEF6E6]",
     iconColor: "text-[#B25E00]",
-    disabled: true,
-    isComingSoon: true,
   },
   {
     id: "payment",

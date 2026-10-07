@@ -25,6 +25,7 @@ import { EmailInput } from "./inputs/EmailInput";
 import { NumberInput } from "./inputs/NumberInput";
 import { RatingInput } from "./inputs/RatingInput";
 import { DropdownInput } from "./inputs/DropdownInput";
+import { FileUploadInput } from "./inputs/FileUploadInput";
 
 interface FormRunnerProps {
   form: PublicForm | FormDetail;
@@ -457,6 +458,16 @@ export function FormRunner({
             value={typeof currentAnswer === "string" ? currentAnswer : ""}
             onChange={handleAnswerChange}
             onAutoAdvance={goNext}
+          />
+        );
+
+      case "file_upload":
+        return (
+          <FileUploadInput
+            value={currentAnswer}
+            onChange={handleAnswerChange}
+            onSubmit={goNext}
+            slug={form.slug || ""}
           />
         );
 

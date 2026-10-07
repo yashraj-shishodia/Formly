@@ -14,7 +14,8 @@ export type QuestionType =
   | "email"
   | "number"
   | "yes_no"
-  | "rating";
+  | "rating"
+  | "file_upload";
 
 export interface ThemeConfig {
   background_color: string;
@@ -197,6 +198,12 @@ export interface ResponseProgressResult {
   response_id: number;
 }
 
+export interface UploadedFileInfo {
+  file_id: number;
+  original_name: string;
+  size_bytes: number;
+}
+
 export interface SubmitResult {
   status: string;
   response_id: number;
@@ -210,7 +217,10 @@ export interface ResponseListItem {
   status: ResponseStatus;
   started_at: string;
   submitted_at?: string | null;
-  answers: Record<string, string | number | boolean | string[] | null>;
+  answers: Record<
+    string,
+    string | number | boolean | string[] | { file_id: number; original_name: string } | null
+  >;
 }
 
 export interface ResponseListResponse {

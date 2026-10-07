@@ -7,10 +7,30 @@ import {
   ChevronRight,
   X,
   Calendar,
+  Download,
 } from "lucide-react";
 import { useFormResponses, useDeleteResponse } from "@/hooks/useForms";
 import { Question, ResponseListItem } from "@/lib/types";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
+
+function parseFileAnswer(val: unknown): { file_id: number; original_name: string } | null {
+  if (!val) return null;
+  if (typeof val === "object" && "file_id" in val && "original_name" in val) {
+    return val as { file_id: number; original_name: string };
+  }
+  if (typeof val === "string") {
+    try {
+      const parsed = JSON.parse(val);
+      if (parsed && typeof parsed === "object" && "file_id" in parsed && "original_name" in parsed) {
+        return parsed;
+      }
+    } catch {
+      // not JSON
+    }
+  }
+  return null;
+}
 
 interface ResponsesViewProps {
   formId: number;
@@ -142,8 +162,11 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
 
                       {sortedQuestions.slice(0, 4).map((q) => {
                         const ans = r.answers[q.id];
+                        const fileInfo = parseFileAnswer(ans);
                         let displayVal = "—";
-                        if (ans !== undefined && ans !== null) {
+                        if (fileInfo) {
+                          displayVal = fileInfo.original_name;
+                        } else if (ans !== undefined && ans !== null) {
                           if (Array.isArray(ans)) {
                             displayVal = ans.join(", ");
                           } else if (typeof ans === "boolean") {
@@ -159,7 +182,21 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
                             className="py-3 px-4 max-w-[200px] truncate text-[var(--text-primary)]"
                             title={displayVal}
                           >
-                            {displayVal}
+                            {fileInfo ? (
+                              <a
+                                href={api.getFileDownloadUrl(fileInfo.file_id)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-[var(--primary)] hover:underline font-medium max-w-full truncate"
+                                title={`Download ${fileInfo.original_name}`}
+                              >
+                                <Download className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{fileInfo.original_name}</span>
+                              </a>
+                            ) : (
+                              displayVal
+                            )}
                           </td>
                         );
                       })}
@@ -259,10 +296,13 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
             <div className="flex-1 py-6 space-y-6">
               {sortedQuestions.map((q, idx) => {
                 const ans = selectedResponse.answers[q.id];
+                const fileInfo = parseFileAnswer(ans);
                 let displayVal = "No answer provided";
                 const hasAnswer = ans !== undefined && ans !== null && ans !== "";
 
-                if (hasAnswer) {
+                if (fileInfo) {
+                  displayVal = fileInfo.original_name;
+                } else if (hasAnswer) {
                   if (Array.isArray(ans)) {
                     displayVal = ans.join(", ");
                   } else if (typeof ans === "boolean") {
@@ -287,13 +327,25 @@ export function ResponsesView({ formId, questions }: ResponsesViewProps) {
                     </div>
 
                     <div className="pl-7">
-                      <p
-                        className={`text-sm font-medium ${
-                          hasAnswer ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] italic"
-                        }`}
-                      >
-                        {displayVal}
-                      </p>
+                      {fileInfo ? (
+                        <a
+                          href={api.getFileDownloadUrl(fileInfo.file_id)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[var(--surface-card)] border border-[var(--border)] text-xs font-semibold text-[var(--primary)] hover:border-[var(--primary)] transition-colors shadow-2xs"
+                        >
+                          <Download className="w-3.5 h-3.5 shrink-0" />
+                          <span>Download {fileInfo.original_name}</span>
+                        </a>
+                      ) : (
+                        <p
+                          className={`text-sm font-medium ${
+                            hasAnswer ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] italic"
+                          }`}
+                        >
+                          {displayVal}
+                        </p>
+                      )}
                     </div>
                   </div>
                 );

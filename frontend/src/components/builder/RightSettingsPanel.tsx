@@ -14,6 +14,7 @@ import {
   Mail,
   Hash,
   Star,
+  Upload,
   GitBranch,
   ArrowRight,
 } from "lucide-react";
@@ -40,6 +41,7 @@ const QUESTION_TYPE_LABELS: Record<QuestionType, { label: string; icon: React.El
   email: { label: "Email", icon: Mail },
   number: { label: "Number", icon: Hash },
   rating: { label: "Rating", icon: Star },
+  file_upload: { label: "File Upload", icon: Upload },
 };
 
 export function RightSettingsPanel({

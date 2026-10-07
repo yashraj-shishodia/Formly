@@ -40,6 +40,7 @@ class QuestionType(str, enum.Enum):
     NUMBER = "number"
     YES_NO = "yes_no"
     RATING = "rating"
+    FILE_UPLOAD = "file_upload"
 
 
 class LogicOperator(str, enum.Enum):
@@ -85,6 +86,11 @@ class Form(Base):
     )
     responses = relationship(
         "Response",
+        back_populates="form",
+        cascade="all, delete-orphan",
+    )
+    uploaded_files = relationship(
+        "UploadedFile",
         back_populates="form",
         cascade="all, delete-orphan",
     )
@@ -196,3 +202,22 @@ class Answer(Base):
         UniqueConstraint("response_id", "question_id", name="uq_response_question"),
         Index("ix_answers_response_question", "response_id", "question_id"),
     )
+
+
+class UploadedFile(Base):
+    __tablename__ = "uploaded_files"
+
+    id = Column(Integer, primary_key=True, index=True)
+    form_id = Column(Integer, ForeignKey("forms.id", ondelete="CASCADE"), nullable=False, index=True)
+    original_name = Column(String(255), nullable=False)
+    stored_name = Column(String(255), nullable=False, unique=True, index=True)
+    content_type = Column(String(128), nullable=False)
+    size_bytes = Column(Integer, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    form = relationship("Form", back_populates="uploaded_files")
+
+    __table_args__ = (
+        Index("ix_uploaded_files_form_id", "form_id"),
+    )
+

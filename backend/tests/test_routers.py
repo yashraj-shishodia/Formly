@@ -563,3 +563,47 @@ def test_multiselect_contract_and_summary_count(client):
     assert stats2_dict["Next.js"] == 1
 
 
+def test_rating_summary_dynamic_max_rating(client: TestClient):
+    # 1. Create form
+    f_res = client.post("/api/forms", json={"title": "NPS Form"})
+    assert f_res.status_code == 201
+    form_id = f_res.json()["id"]
+
+    # 2. Add rating question with max_rating = 10
+    q_res = client.post(
+        f"/api/forms/{form_id}/questions",
+        json={
+            "type": "rating",
+            "title": "Rate your experience out of 10",
+            "required": True,
+            "settings_json": json.dumps({"max_rating": 10}),
+        },
+    )
+    assert q_res.status_code == 201
+    q_id = q_res.json()["id"]
+
+    # 3. Publish form
+    pub_res = client.post(f"/api/forms/{form_id}/publish")
+    assert pub_res.status_code == 200
+    slug = pub_res.json()["slug"]
+
+    # 4. Submit responses
+    client.post(
+        f"/api/public/forms/{slug}/responses",
+        json={"answers": [{"question_id": q_id, "value_number": 8}]},
+    )
+    client.post(
+        f"/api/public/forms/{slug}/responses",
+        json={"answers": [{"question_id": q_id, "value_number": 10}]},
+    )
+
+    # 5. Check summary has max_rating = 10, average = 9.0
+    sum_res = client.get(f"/api/forms/{form_id}/summary")
+    assert sum_res.status_code == 200
+    q_sum = sum_res.json()["questions"][0]
+    assert q_sum["max_rating"] == 10
+    assert q_sum["average"] == 9.0
+    assert q_sum["distribution"]["8"] == 1
+    assert q_sum["distribution"]["10"] == 1
+
+

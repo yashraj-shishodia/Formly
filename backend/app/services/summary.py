@@ -118,6 +118,16 @@ def calculate_form_summary(db: Session, form_id: int) -> FormSummary:
             summary.option_stats = option_stats
 
         elif q_type == QuestionType.RATING.value:
+            max_r = 5
+            if question.settings_json:
+                try:
+                    s_data = json.loads(question.settings_json)
+                    if isinstance(s_data, dict) and "max_rating" in s_data:
+                        max_r = int(s_data["max_rating"])
+                except Exception:
+                    pass
+            summary.max_rating = max_r
+
             ratings = []
             distribution: Counter = Counter()
             for a in answers:

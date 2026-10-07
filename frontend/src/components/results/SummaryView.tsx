@@ -218,54 +218,64 @@ export function SummaryView({ formId }: SummaryViewProps) {
                 )}
 
                 {/* Rating: Average Score & Distribution */}
-                {q.type === "rating" && (
-                  <div className="space-y-4 pt-1">
-                    <div className="flex items-center gap-4 p-4 bg-[var(--surface-inner)] rounded-[12px] border border-[var(--border)] w-fit">
-                      <div className="text-4xl font-bold text-[var(--text-primary)]">
-                        {q.average != null ? q.average.toFixed(1) : "N/A"}
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-[var(--text-primary)]">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`w-4 h-4 ${
-                                (q.average || 0) >= star
-                                  ? "fill-[var(--text-primary)] text-[var(--text-primary)]"
-                                  : "text-[var(--border-strong)]"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-xs text-[var(--text-secondary)] block">
-                          Average score out of 5
-                        </span>
-                      </div>
-                    </div>
+                {q.type === "rating" && (() => {
+                  const maxRating = q.max_rating || 5;
+                  const ratingScale = Array.from({ length: maxRating }, (_, i) => i + 1);
 
-                    {/* Score distribution */}
-                    {q.distribution && (
-                      <div className="grid grid-cols-5 gap-2 pt-2">
-                        {[1, 2, 3, 4, 5].map((score) => {
-                          const count = q.distribution?.[String(score)] || 0;
-                          return (
-                            <div
-                              key={score}
-                              className="p-2.5 rounded-[8px] bg-[var(--surface-inner)] border border-[var(--border)] text-center"
-                            >
-                              <span className="text-[11px] font-semibold text-[var(--text-secondary)] block">
-                                {score} ★
-                              </span>
-                              <span className="text-base font-bold text-[var(--text-primary)] mt-0.5 block">
-                                {count}
-                              </span>
-                            </div>
-                          );
-                        })}
+                  return (
+                    <div className="space-y-4 pt-1">
+                      <div className="flex items-center gap-4 p-4 bg-[var(--surface-inner)] rounded-[12px] border border-[var(--border)] w-fit">
+                        <div className="text-4xl font-bold text-[var(--text-primary)]">
+                          {q.average != null ? q.average.toFixed(1) : "N/A"}
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1 text-[var(--text-primary)] flex-wrap max-w-xs">
+                            {ratingScale.map((star) => (
+                              <Star
+                                key={star}
+                                className={`w-4 h-4 ${
+                                  (q.average || 0) >= star
+                                    ? "fill-[var(--text-primary)] text-[var(--text-primary)]"
+                                    : "text-[var(--border-strong)]"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-xs text-[var(--text-secondary)] block">
+                            Average score out of {maxRating}
+                          </span>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                )}
+
+                      {/* Score distribution */}
+                      {q.distribution && (
+                        <div
+                          className="grid gap-2 pt-2"
+                          style={{
+                            gridTemplateColumns: `repeat(${Math.min(maxRating, 10)}, minmax(0, 1fr))`,
+                          }}
+                        >
+                          {ratingScale.map((score) => {
+                            const count = q.distribution?.[String(score)] || 0;
+                            return (
+                              <div
+                                key={score}
+                                className="p-2.5 rounded-[8px] bg-[var(--surface-inner)] border border-[var(--border)] text-center min-w-[36px]"
+                              >
+                                <span className="text-[11px] font-semibold text-[var(--text-secondary)] block">
+                                  {score} ★
+                                </span>
+                                <span className="text-base font-bold text-[var(--text-primary)] mt-0.5 block">
+                                  {count}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Yes / No: Visual Split */}
                 {q.type === "yes_no" && (
